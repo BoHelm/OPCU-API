@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net10.0": {
+      "OPCFoundation.NetStandard.Opc.Ua": {
+        "type": "Direct",
+        "requested": "[1.5.378.182, )",
+        "resolved": "1.5.378.182",
+        "contentHash": "vRlyWKgNqvHVPNnRwvzNDQVR3DFf3v/seuD5AtrMAeQE+QVKPJjkM+juXaOWDULuHCLks4zqo6wDWESWt4jKWA==",
+        "dependencies": {
+          "OPCFoundation.NetStandard.Opc.Ua.Client": "1.5.378.182",
+          "OPCFoundation.NetStandard.Opc.Ua.Configuration": "1.5.378.182",
+          "OPCFoundation.NetStandard.Opc.Ua.Core": "1.5.378.182",
+          "OPCFoundation.NetStandard.Opc.Ua.Gds.Client.Common": "1.5.378.182",
+          "OPCFoundation.NetStandard.Opc.Ua.Gds.Server.Common": "1.5.378.182",
+          "OPCFoundation.NetStandard.Opc.Ua.Security.Certificates": "1.5.378.182",
+          "OPCFoundation.NetStandard.Opc.Ua.Server": "1.5.378.182",
+          "OPCFoundation.NetStandard.Opc.Ua.Types": "1.5.378.182"
+        }
+      },
+      "BitFaster.Caching": {
+        "type": "Transitive",
+        "resolved": "2.6.0",
+        "contentHash": "iF2dMiGpaya8Umwi0OfsGKtq3aMVgHVsBChwQL+NhShEsRorcoTinGf9FFNBnBMwJW2Vm0FqhtOaEBY0+74p6g=="
+      },
+      "Newtonsoft.Json": {
+        "type": "Transitive",
+        "resolved": "13.0.4",
+        "contentHash": "pdgNNMai3zv51W5aq268sujXUyx7SNdE2bj1wZcWjAQrKMFZV260lbqYop1d2GM67JI1huLRwxo9ZqnfF/lC6A=="
+      },
+      "OPCFoundation.NetStandard.Opc.Ua.Client": {
+        "type": "Transitive",
+        "resolved": "1.5.378.182",
+        "contentHash": "sVj7WU2eF7JlMSUAP99zDOhB6ksiHBm79WgpdUbYcH90MwnHck15H1YJmTMZVU+r1h3F3Qg/9/h4tO7dEWAGjQ==",
+        "dependencies": {
+          "BitFaster.Caching": "2.6.0",
+          "OPCFoundation.NetStandard.Opc.Ua.Configuration": "1.5.378.182",
+          "OPCFoundation.NetStandard.Opc.Ua.Core": "1.5.378.182"
+        }
+      },
+      "OPCFoundation.NetStandard.Opc.Ua.Configuration": {
+        "type": "Transitive",
+        "resolved": "1.5.378.182",
+        "contentHash": "xVKh0ldsbumW0G6h92mQ8lJu2QdkbTEMEh7ykCwcD3QcKb6+TwzifmjGOuA6N5Bvtkb4mvvy4iayjNsBQpf/8w==",
+        "dependencies": {
+          "OPCFoundation.NetStandard.Opc.Ua.Core": "1.5.378.182"
+        }
+      },
+      "OPCFoundation.NetStandard.Opc.Ua.Core": {
+        "type": "Transitive",
+        "resolved": "1.5.378.182",
+        "contentHash": "TDCpf0VkGimaHGxKUo+Vq9iypcc+bYOf/OmiSMQWh7fkI83TBfIwgyFWc1h1jWgOO62U+AjSjQ6j6pd8sJ7xGg==",
+        "dependencies": {
+          "Newtonsoft.Json": "13.0.4",
+          "OPCFoundation.NetStandard.Opc.Ua.Security.Certificates": "1.5.378.182",
+          "OPCFoundation.NetStandard.Opc.Ua.Types": "1.5.378.182"
+        }
+      },
+      "OPCFoundation.NetStandard.Opc.Ua.Gds.Client.Common": {
+        "type": "Transitive",
+        "resolved": "1.5.378.182",
+        "contentHash": "6lEIjKkAzezM2BddleNS5dHTWs5K1XtCUqDllDVLrmZZl54tce1afP3yt4GwVYcbrsVhFdlQk2o0Yjap7DoxPw==",
+        "dependencies": {
+          "OPCFoundation.NetStandard.Opc.Ua.Client": "1.5.378.182",
+          "OPCFoundation.NetStandard.Opc.Ua.Core": "1.5.378.182"
+        }
+      },
+      "OPCFoundation.NetStandard.Opc.Ua.Gds.Server.Common": {
+        "type": "Transitive",
+        "resolved": "1.5.378.182",
+        "contentHash": "E2/Qv/xRisJo3U6Us23ktop7Im86C4qVr0iLAUOVO/tsi6f0wIFqhnpBr+Pi6l2e12UKTns1vgl9CUbwiKHtJg==",
+        "dependencies": {
+          "OPCFoundation.NetStandard.Opc.Ua.Core": "1.5.378.182",
+          "OPCFoundation.NetStandard.Opc.Ua.Security.Certificates": "1.5.378.182",
+          "OPCFoundation.NetStandard.Opc.Ua.Server": "1.5.378.182"
+        }
+      },
+      "OPCFoundation.NetStandard.Opc.Ua.Security.Certificates": {
+        "type": "Transitive",
+        "resolved": "1.5.378.182",
+        "contentHash": "pEllr9iFON+ZxRXZcFkCfCNA3Ukkq8+Ryq1vEUR8rQeQCQPYCPpERDe+oOZb2YlcqfThqPuJYgTlYFtNm5zf9Q==",
+        "dependencies": {
+          "OPCFoundation.NetStandard.Opc.Ua.Types": "1.5.378.182"
+        }
+      },
+      "OPCFoundation.NetStandard.Opc.Ua.Server": {
+        "type": "Transitive",
+        "resolved": "1.5.378.182",
+        "contentHash": "nzmam/10Q/lkbLDgV81TDIqmiGlIJGOEPeIyeOLQzgzchVQ6RFTwql9pj2aBFAO3hSAPTItidCMyaeSsAJ9mmw==",
+        "dependencies": {
+          "OPCFoundation.NetStandard.Opc.Ua.Configuration": "1.5.378.182",
+          "OPCFoundation.NetStandard.Opc.Ua.Core": "1.5.378.182"
+        }
+      },
+      "OPCFoundation.NetStandard.Opc.Ua.Types": {
+        "type": "Transitive",
+        "resolved": "1.5.378.182",
+        "contentHash": "jTWvryUoryJxh5GfO7RP19s6f91hfjaAUqryHKW2U+1wJSBXOiZVIeZm4xHAZEi4tSbk32ZtXNrBPhQ8xqY44Q=="
+      }
+    }
+  }
+}

@@ -1,0 +1,10 @@
+.git
+.state
+.keys
+.artifacts
+**/bin
+**/obj
+**/TestResults
+**/*.pfx
+**/*.key
+.env

@@ -1,0 +1,12 @@
+**/bin/
+**/obj/
+**/TestResults/
+.state/
+.keys/
+.artifacts/
+.env
+*.user
+*.pfx
+*.key
+**/__pycache__/
+certificates/

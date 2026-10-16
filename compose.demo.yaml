@@ -1,0 +1,44 @@
+name: kitchen-gateway-demo
+services:
+  simulated-api:
+    image: kitchen-demo-api:0.1.0
+    build:
+      context: .
+      target: demo
+    volumes:
+      - demo-key:/demo
+    networks: [gateway]
+    restart: unless-stopped
+  gateway:
+    image: kitchen-gateway:0.1.0
+    build:
+      context: .
+      target: gateway
+    depends_on:
+      simulated-api:
+        condition: service_healthy
+    environment:
+      GATEWAY_DEMO: "true"
+      GATEWAY_DEMO_API_URL: http://simulated-api:5090
+      GATEWAY_DEMO_KEY_FILE: /demo/demo.key
+      GATEWAY_INITIAL_UA_BIND: 0.0.0.0
+      # Ausdrücklich nur lokale Simulation: Web-HTTP nur auf Host-Loopback.
+      # OPC UA bleibt SignAndEncrypt mit explizitem Vertrauen und eigenem Benutzer.
+      GATEWAY_ALLOW_HTTP: "true"
+    volumes:
+      - gateway-data:/data
+      - gateway-keys:/keys
+      - demo-key:/demo:ro
+    ports:
+      - "127.0.0.1:5080:8080"
+      - "127.0.0.1:4840:4840"
+    networks: [gateway]
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 1.0
+volumes:
+  gateway-data:
+  gateway-keys:
+  demo-key:
+networks:
+  gateway:

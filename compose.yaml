@@ -1,0 +1,30 @@
+name: kitchen-gateway
+services:
+  gateway:
+    image: kitchen-gateway:0.1.0
+    build:
+      context: .
+      target: gateway
+    environment:
+      ASPNETCORE_URLS: "https://0.0.0.0:8443;http://127.0.0.1:8080"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /run/certificates/admin.pfx
+      GATEWAY_WEB_CERT_PASSWORD_FILE: /run/secrets/admin_tls_password
+      GATEWAY_INITIAL_UA_BIND: 0.0.0.0
+    secrets:
+      - admin_tls_password
+    volumes:
+      - gateway-data:/data
+      - gateway-keys:/keys
+      - ./certificates:/run/certificates:ro
+    ports:
+      - "127.0.0.1:8443:8443"
+      - "4840:4840"
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 1.0
+secrets:
+  admin_tls_password:
+    file: .keys/admin-tls-password
+volumes:
+  gateway-data:
+  gateway-keys:

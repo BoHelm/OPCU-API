@@ -1,0 +1,4937 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Connected Kitchen API"
+  },
+  "servers": [
+    {
+      "url": "https://connectedkitchen.2kai.eu",
+      "description": "Server URL"
+    }
+  ],
+  "security": [
+    {
+      "api-key": []
+    }
+  ],
+  "paths": {
+    "/api/regions": {
+      "get": {
+        "tags": [
+          "region-controller"
+        ],
+        "summary": "Get regions for structure",
+        "description": "Get all regions for the region structure",
+        "operationId": "getRegionsForStructure",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RegionDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "region-controller"
+        ],
+        "summary": "Update region state",
+        "description": "Set region as active or inactive",
+        "operationId": "updateActiveState",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeActiveStateRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "region-controller"
+        ],
+        "summary": "Save new region",
+        "operationId": "save",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegionDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/flexi-connect/optima-programs/{id}": {
+      "get": {
+        "tags": [
+          "optima-program-controller"
+        ],
+        "operationId": "get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OptimaProgramDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "optima-program-controller"
+        ],
+        "operationId": "update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OptimaProgramUpsertDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OptimaProgramDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "optima-program-controller"
+        ],
+        "operationId": "delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/flexi-connect/cookprograms/{id}": {
+      "get": {
+        "tags": [
+          "flexi-connect-controller"
+        ],
+        "summary": "Get one cookprogram as json",
+        "operationId": "getCookprogram",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/JsonNode"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "flexi-connect-controller"
+        ],
+        "summary": "Update existing cookprogram",
+        "operationId": "updateCookprogram",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JsonNode"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "flexi-connect-controller"
+        ],
+        "summary": "Delete cookprogram",
+        "operationId": "deleteCookprogram",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/flexi-connect/cookprograms/flexichef/{id}": {
+      "put": {
+        "tags": [
+          "flexi-connect-controller"
+        ],
+        "summary": "Update FlexiChef cookprogram",
+        "operationId": "updateFlexiChefCookprogram",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FlexiChefProgramCreateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/devices/update": {
+      "put": {
+        "tags": [
+          "devices-controller"
+        ],
+        "summary": "Update device",
+        "operationId": "updateDevice",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDeviceRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/devices/set-deployment-date": {
+      "put": {
+        "tags": [
+          "devices-controller"
+        ],
+        "summary": "Set deployment date",
+        "operationId": "setDeploymentDate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FirmwareToDeviceDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/devices/firmware-status-pending": {
+      "put": {
+        "tags": [
+          "devices-controller"
+        ],
+        "summary": "Update the firmware status of device",
+        "operationId": "setFirmWareStatusPending",
+        "parameters": [
+          {
+            "name": "deviceIds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          },
+          {
+            "name": "deliveryDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "installWithoutConfirmation",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/cookbooks/updateActiveState": {
+      "put": {
+        "tags": [
+          "cookbook-controller"
+        ],
+        "summary": "Update state of cookbook",
+        "description": "Set cookbook as active or inactive",
+        "operationId": "updateActiveState_1",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateActiveStateRequestBodyDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cookbook-device-assignments": {
+      "put": {
+        "tags": [
+          "cookbook-to-device-assignment-controller"
+        ],
+        "summary": "Assign specific cookbook to multiple devices",
+        "operationId": "assignCookbookToDevices",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignCookbookToDevicesRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/flexi-connect/optima-programs": {
+      "get": {
+        "tags": [
+          "optima-program-controller"
+        ],
+        "operationId": "all",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OptimaProgramDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "optima-program-controller"
+        ],
+        "operationId": "create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OptimaProgramUpsertDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OptimaProgramDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/flexi-connect/cookprograms": {
+      "get": {
+        "tags": [
+          "flexi-connect-controller"
+        ],
+        "summary": "Get all cookprograms as (old) json",
+        "operationId": "getCookprograms",
+        "parameters": [
+          {
+            "name": "oem",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "countryId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "deviceType",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FlexiConnectCookprogramSummaryDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "flexi-connect-controller"
+        ],
+        "summary": "Create new cookprogram",
+        "operationId": "createCookprogram",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/UploadCookprogramDto"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "format": "int32"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/flexi-connect/cookprograms/importSdf": {
+      "post": {
+        "tags": [
+          "flexi-connect-controller"
+        ],
+        "summary": "Import program from sdf",
+        "operationId": "importSdfCookbook",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string",
+                "format": "byte"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/flexi-connect/cookprograms/images/{type}": {
+      "get": {
+        "tags": [
+          "flexi-connect-controller"
+        ],
+        "summary": "Get all image metadata for a FlexiConnect image type",
+        "operationId": "getImages",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "mkn"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FlexiConnectImageDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "flexi-connect-controller"
+        ],
+        "summary": "Upload one customer FlexiConnect image",
+        "operationId": "uploadImage",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlexiConnectImageDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/flexi-connect/cookprograms/flexichef": {
+      "post": {
+        "tags": [
+          "flexi-connect-controller"
+        ],
+        "summary": "Create FlexiChef cookprograms",
+        "operationId": "createFlexiChefCookprogram",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/FlexiChefProgramCreateDto"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FlexiChefProgramCreatedDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cookbooks": {
+      "get": {
+        "tags": [
+          "cookbook-controller"
+        ],
+        "summary": "Get all cookbooks",
+        "operationId": "getCookbooks",
+        "parameters": [
+          {
+            "name": "active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableViewResponseDtoCookbookListDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "cookbook-controller"
+        ],
+        "summary": "Save new cookbook",
+        "operationId": "saveCookbook",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveCookbookRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{deviceId}/region": {
+      "patch": {
+        "tags": [
+          "devices-controller"
+        ],
+        "summary": "Update device region",
+        "operationId": "updateDeviceRegion",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDeviceRegionRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/flexi-connect/cookprograms/images/{type}/**": {
+      "get": {
+        "tags": [
+          "flexi-connect-controller"
+        ],
+        "summary": "Download one FlexiConnect image",
+        "operationId": "getImage",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "mkn"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/firmware/{deviceType}/{version}/patch-notes/{language}": {
+      "get": {
+        "tags": [
+          "firmware-controller"
+        ],
+        "operationId": "getPatchNotes",
+        "parameters": [
+          {
+            "name": "deviceType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "language",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/StringResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/features": {
+      "get": {
+        "tags": [
+          "feature-controller"
+        ],
+        "operationId": "getAll",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/features/{name}": {
+      "get": {
+        "tags": [
+          "feature-controller"
+        ],
+        "operationId": "isEnabled",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{id}/image": {
+      "get": {
+        "tags": [
+          "devices-controller"
+        ],
+        "summary": "Get device image",
+        "operationId": "getDeviceImage",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/StringResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{deviceId}/error-history": {
+      "get": {
+        "tags": [
+          "devices-controller"
+        ],
+        "summary": "Get error history of device",
+        "operationId": "getErrorHistory",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ErrorMessage"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{deviceId}/error-history-summary": {
+      "get": {
+        "tags": [
+          "devices-controller"
+        ],
+        "summary": "Get unfiltered error history summary of device",
+        "operationId": "getErrorHistorySummary",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorHistorySummaryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{deviceId}/downloads": {
+      "get": {
+        "tags": [
+          "devices-controller"
+        ],
+        "summary": "Get device downloads",
+        "operationId": "getDeviceDownloads",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceDownloadDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/reporting/operatings/percentages": {
+      "get": {
+        "tags": [
+          "operatings-controller"
+        ],
+        "summary": "Get the executed cookprograms from devices",
+        "operationId": "getPercentages",
+        "parameters": [
+          {
+            "name": "deviceIds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OperatingPercentages"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/reporting/operatings/operation-protocol-download-link": {
+      "get": {
+        "tags": [
+          "operatings-controller"
+        ],
+        "summary": "Get operation protocol of devices as pdf",
+        "description": "Get detailed operating-information about devices as pdf",
+        "operationId": "getOperationProtocolDownloadLink",
+        "parameters": [
+          {
+            "name": "deviceIds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          },
+          {
+            "name": "weekFrom",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "weekTo",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "day",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileDownloadLinkDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/reporting/operatings/operating-hours": {
+      "get": {
+        "tags": [
+          "operatings-controller"
+        ],
+        "summary": "Get operating hours of devices",
+        "description": "Get operating hours of devices",
+        "operationId": "getOperatingHours",
+        "parameters": [
+          {
+            "name": "deviceIds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OperatingHoursDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/reporting/operatings/day-operations": {
+      "get": {
+        "tags": [
+          "operatings-controller"
+        ],
+        "summary": "Get the daily consumption info about a specific date",
+        "operationId": "getDayOperations",
+        "parameters": [
+          {
+            "name": "deviceIds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          },
+          {
+            "name": "day",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DayOperations"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/reporting/haccp": {
+      "get": {
+        "tags": [
+          "haccp-controller"
+        ],
+        "summary": "Get the Haccp-protocol of device",
+        "operationId": "getProtocol",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/HaccpProtocol"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/reporting/haccp/setValues": {
+      "get": {
+        "tags": [
+          "haccp-controller"
+        ],
+        "summary": "Get the set values per deviceId and time",
+        "operationId": "getSetValues",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "zone",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SetValues"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/reporting/haccp/panDetectedEvents": {
+      "get": {
+        "tags": [
+          "haccp-controller"
+        ],
+        "summary": "Get the device events per deviceId and time",
+        "operationId": "getPanDetectedEvents",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "zone",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HaccpProtocolEvent"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/reporting/haccp/openDoorEvents": {
+      "get": {
+        "tags": [
+          "haccp-controller"
+        ],
+        "summary": "Get the device events per deviceId and time",
+        "operationId": "getOpenDoorEvents",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HaccpProtocolEvent"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/reporting/haccp/loaActiveEvents": {
+      "get": {
+        "tags": [
+          "haccp-controller"
+        ],
+        "summary": "Get the device events per deviceId and time",
+        "operationId": "getLoaActiveEvents",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HaccpProtocolEvent"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/reporting/haccp/hubEvents": {
+      "get": {
+        "tags": [
+          "haccp-controller"
+        ],
+        "summary": "Get the device events per deviceId and time",
+        "operationId": "getHubEvents",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "zone",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HaccpProtocolEvent"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/reporting/haccp/ecoModeEvents": {
+      "get": {
+        "tags": [
+          "haccp-controller"
+        ],
+        "summary": "Get the device events per deviceId and time",
+        "operationId": "getEcoModeEvents",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "zone",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HaccpProtocolEvent"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/reporting/haccp/cookprogram-days": {
+      "get": {
+        "tags": [
+          "haccp-controller"
+        ],
+        "summary": "Get days with cookprograms for a device",
+        "operationId": "getCookprogramDays",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "date"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/reporting/haccp/actualValues": {
+      "get": {
+        "tags": [
+          "haccp-controller"
+        ],
+        "summary": "Get the actual values per deviceId and time",
+        "operationId": "getActualValues",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "zone",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActualValues"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/reporting/consumptions/consumption-steps": {
+      "get": {
+        "tags": [
+          "consumption-controller"
+        ],
+        "summary": "Get consumption steps",
+        "description": "Returns detailed consumption infos for a specific device for each operational\nentry",
+        "operationId": "getConsumptionSteps",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ConsumptionDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/reporting/consumptions/consumption-infos": {
+      "get": {
+        "tags": [
+          "consumption-controller"
+        ],
+        "summary": "Get consumption infos",
+        "description": "Returns detailed consumption infos for a specific device in a daily series",
+        "operationId": "getConsumptionInfos",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ConsumptionDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/reporting/consumptions/actual-power-per-program": {
+      "get": {
+        "tags": [
+          "consumption-controller"
+        ],
+        "summary": "Get actual power per program",
+        "description": "Returns the actual power of the program in the specified time range and\nzone",
+        "operationId": "getActualPowerPerProgram",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "zone",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActualPower"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/model/{model}/image": {
+      "get": {
+        "tags": [
+          "devices-controller"
+        ],
+        "summary": "Download device image",
+        "operationId": "getDeviceImageByModel",
+        "parameters": [
+          {
+            "name": "model",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "revision",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "position",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/firmware": {
+      "get": {
+        "tags": [
+          "devices-controller"
+        ],
+        "summary": "Get all devices with firmware information",
+        "operationId": "getFirmwareDevices",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/cloud": {
+      "get": {
+        "tags": [
+          "devices-controller"
+        ],
+        "summary": "Get all devices",
+        "operationId": "getDevicesWithCloud",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices": {
+      "get": {
+        "tags": [
+          "devices-controller"
+        ],
+        "summary": "Get all devices",
+        "operationId": "getDevicesWithCloud_1",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/cleaning-status": {
+      "get": {
+        "tags": [
+          "devices-controller"
+        ],
+        "summary": "Get cleaning status for multiple devices",
+        "operationId": "getCleaningStatus",
+        "parameters": [
+          {
+            "name": "deviceIds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CleaningStatus"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/cleaning-history": {
+      "get": {
+        "tags": [
+          "devices-controller"
+        ],
+        "summary": "Get cleaning histories of device",
+        "operationId": "getCleaningHistories",
+        "parameters": [
+          {
+            "name": "deviceIds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CleaningHistoryDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cookprograms/{id}/image": {
+      "get": {
+        "tags": [
+          "cookprogram-controller"
+        ],
+        "summary": "Get cookprogram image",
+        "description": "Get the preview image of a cookprogram by id",
+        "operationId": "getCookprogramImage",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cookprograms/getCookprogramsForSelection": {
+      "get": {
+        "tags": [
+          "cookprogram-controller"
+        ],
+        "summary": "Get cookprograms for selection",
+        "description": "Get the id, name and category of cookprograms",
+        "operationId": "getCookprogramsForSelection",
+        "parameters": [
+          {
+            "name": "deviceType",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CookprogramSelectionDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cookprograms/getCookprogramCourseToday/{deviceId}": {
+      "get": {
+        "tags": [
+          "cookprogram-controller"
+        ],
+        "summary": "Get todays cookprogram course",
+        "operationId": "getCookprogramCourseToday",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CookprogramCourseDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cookprograms/getActiveCookprogram/{deviceId}": {
+      "get": {
+        "tags": [
+          "cookprogram-controller"
+        ],
+        "summary": "Get active cookprograms for device",
+        "operationId": "getActiveCookprogram",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActiveCookprogramDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cookbooks/{cookbookId}/cookprograms": {
+      "get": {
+        "tags": [
+          "cookbook-controller"
+        ],
+        "summary": "Get all cookprograms of specific id",
+        "operationId": "getCookprograms_1",
+        "parameters": [
+          {
+            "name": "cookbookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CookprogramShortDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cookbookHistory/getEntries/{cookbookId}": {
+      "get": {
+        "tags": [
+          "cookbook-history-controller"
+        ],
+        "summary": "Get entires for specific cookbook",
+        "description": "Returns detailed information about cookbook entries",
+        "operationId": "getEntries",
+        "parameters": [
+          {
+            "name": "cookbookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "filters",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "sortColumn",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "asc",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableViewResponseDtoCookbookHistoryEntryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cookbook-device-assignments/devices/cookbooks": {
+      "get": {
+        "tags": [
+          "cookbook-to-device-assignment-controller"
+        ],
+        "summary": "Get all cookbooks of specific device",
+        "operationId": "getDeviceCookbooks",
+        "parameters": [
+          {
+            "name": "deviceIds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          },
+          {
+            "name": "filters",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "sortColumn",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "asc",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableViewResponseDtoDevicesCookbooksDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cookbook-device-assignments/cookbooks/{cookbookId}/devices": {
+      "get": {
+        "tags": [
+          "cookbook-to-device-assignment-controller"
+        ],
+        "summary": "Get devices assigned to cookbook",
+        "operationId": "getAssignedDevices",
+        "parameters": [
+          {
+            "name": "cookbookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CookbookToDeviceAssignmentDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/regions/{id}": {
+      "delete": {
+        "tags": [
+          "region-controller"
+        ],
+        "summary": "Delete region",
+        "operationId": "deleteRegion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/flexi-connect/cookprograms/images/{type}/{name}": {
+      "delete": {
+        "tags": [
+          "flexi-connect-controller"
+        ],
+        "summary": "Delete one customer image",
+        "operationId": "deleteImage",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/cookbooks/{id}": {
+      "delete": {
+        "tags": [
+          "cookbook-controller"
+        ],
+        "summary": "Delete cookbook",
+        "operationId": "deleteCookbook",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ChangeActiveStateRequestDto": {
+        "type": "object",
+        "properties": {
+          "regionId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "active",
+          "regionId"
+        ]
+      },
+      "OptimaProgramUpsertDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "deviceType": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 6,
+            "minimum": 3
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "minItems": 0
+          },
+          "dateSaved": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "favorite": {
+            "type": "boolean"
+          },
+          "mknProgram": {
+            "type": "boolean"
+          },
+          "deviceSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 400,
+            "minLength": 0
+          },
+          "image": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "categoryId": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "tag": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "countryId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OptimaStepDto"
+            },
+            "maxItems": 19,
+            "minItems": 0
+          }
+        },
+        "required": [
+          "dateSaved",
+          "deviceSize",
+          "deviceType",
+          "features",
+          "name",
+          "steps"
+        ]
+      },
+      "OptimaStepDto": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stepType": {
+            "type": "string",
+            "enum": [
+              "PREHEAT_COOKING",
+              "PREHEAT_FRYING",
+              "COOKING_TEMPERATURE",
+              "FRYING_TEMPERATURE",
+              "TIMER",
+              "CLICK",
+              "REPEAT",
+              "SOUND",
+              "EXTERNAL_CONTACT",
+              "CORE_TEMPERATURE",
+              "WATER_FILLING",
+              "POWER_LEVEL",
+              "LIFT",
+              "START_TIME",
+              "PREHEAT_DEEP_FRYING",
+              "DEEP_FRYING_TEMPERATURE",
+              "PROGRAM_END",
+              "SKIMMING",
+              "DELAYED_START",
+              "CHANGE_COOKING_MODE",
+              "UNKNOWN"
+            ]
+          },
+          "values": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "index",
+          "stepType",
+          "values"
+        ]
+      },
+      "OptimaProgramDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dateSaved": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "name": {
+            "type": "string"
+          },
+          "deviceType": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "favorite": {
+            "type": "boolean"
+          },
+          "mknProgram": {
+            "type": "boolean"
+          },
+          "deviceSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "string"
+          },
+          "tag": {
+            "type": "string"
+          },
+          "countryId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OptimaStepDto"
+            }
+          }
+        },
+        "required": [
+          "dateSaved",
+          "deviceSize",
+          "deviceType",
+          "favorite",
+          "features",
+          "id",
+          "mknProgram",
+          "name",
+          "steps"
+        ]
+      },
+      "JsonNode": {},
+      "FlexiChefProgramCreateDto": {
+        "type": "object",
+        "properties": {
+          "favourite": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "string"
+          },
+          "parentId": {
+            "type": "string"
+          },
+          "tag": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FlexiChefStepCreateDto"
+            }
+          }
+        },
+        "required": [
+          "categoryId",
+          "description",
+          "favourite",
+          "name",
+          "parentId",
+          "steps",
+          "tag"
+        ]
+      },
+      "FlexiChefStepCreateDto": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stepType": {
+            "type": "string",
+            "enum": [
+              "PRESSURE_COOKING",
+              "COOKING",
+              "ROASTING",
+              "SOFT_COOKING",
+              "FRYING",
+              "PERFECTION",
+              "DELTA_T_COOKING",
+              "ZONE_GRILLING",
+              "ZONE_COOKING",
+              "SMART_BOILING",
+              "SOUSVIDE",
+              "LID",
+              "CUP",
+              "WATER_INTAKE",
+              "DRAINAGE",
+              "INFO_STEP"
+            ]
+          },
+          "values": {
+            "$ref": "#/components/schemas/FlexiChefStepValuesCreateDto"
+          }
+        },
+        "required": [
+          "index",
+          "stepType",
+          "values"
+        ]
+      },
+      "FlexiChefStepValuesCreateDto": {
+        "type": "object",
+        "properties": {
+          "isAutomatic": {
+            "type": "boolean"
+          },
+          "cookingTime": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "coreTemperatureInternal": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "endCondition": {
+            "type": "string"
+          },
+          "externalSignalState": {
+            "type": "string"
+          },
+          "foodLiftMode": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "infoImageData": {
+            "type": "string"
+          },
+          "infoImageName": {
+            "type": "string"
+          },
+          "infoText": {
+            "type": "string"
+          },
+          "intensity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openingPercentage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pressureReductionLevel": {
+            "type": "string"
+          },
+          "temperature": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "timer1": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "timer2": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "timer3": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "timer4": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "timerIdCoreTempInternal": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "waterAmount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "waterAmountRelative": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "waterInlet": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateDeviceRequestDto": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "position": {
+            "type": "string"
+          },
+          "regionId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "image": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "uploadCookbooks": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "deviceId",
+          "name",
+          "position",
+          "regionId",
+          "uploadCookbooks"
+        ]
+      },
+      "FirmwareToDeviceDto": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "deploymentDate": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "deploymentDate",
+          "deviceId"
+        ]
+      },
+      "UpdateActiveStateRequestBodyDto": {
+        "type": "object",
+        "properties": {
+          "cookbookId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "active",
+          "cookbookId"
+        ]
+      },
+      "AssignCookbookToDevicesRequestDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "deploymentDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deviceIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "applyWithoutConfirmation": {
+            "type": "boolean"
+          },
+          "deleteAllCookingPrograms": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "applyWithoutConfirmation",
+          "deleteAllCookingPrograms",
+          "deploymentDate",
+          "deviceIds",
+          "id"
+        ]
+      },
+      "RegionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "parentElement": {
+            "type": "string"
+          },
+          "parentElementId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "address": {
+            "type": "string"
+          },
+          "storeNr": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "leaf": {
+            "type": "boolean"
+          },
+          "layer": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "float"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "float"
+          }
+        },
+        "required": [
+          "active",
+          "id",
+          "layer",
+          "leaf",
+          "name"
+        ]
+      },
+      "UploadCookprogramDto": {
+        "type": "object",
+        "properties": {
+          "cookprogram": {
+            "$ref": "#/components/schemas/JsonNode"
+          },
+          "deviceType": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "cookprogram",
+          "deviceType"
+        ]
+      },
+      "FlexiConnectImageDto": {
+        "type": "object",
+        "properties": {
+          "folder": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "relPath": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "fileName",
+          "folder",
+          "relPath"
+        ]
+      },
+      "FlexiChefProgramCreatedDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "CookbookCookprogramDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "categories",
+          "id",
+          "name"
+        ]
+      },
+      "CookbookDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cookbookId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "author": {
+            "type": "string"
+          },
+          "creationDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "cookprograms": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CookbookCookprogramDto"
+            }
+          },
+          "deviceSerial": {
+            "type": "string"
+          },
+          "deviceType": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "oem": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "active",
+          "author",
+          "cookbookId",
+          "cookprograms",
+          "creationDate",
+          "deviceSerial",
+          "deviceType",
+          "id",
+          "name",
+          "version"
+        ]
+      },
+      "SaveCookbookRequestDto": {
+        "type": "object",
+        "properties": {
+          "cookbook": {
+            "$ref": "#/components/schemas/CookbookDto"
+          },
+          "selectedCookprograms": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        },
+        "required": [
+          "cookbook",
+          "selectedCookprograms"
+        ]
+      },
+      "UpdateDeviceRegionRequestDto": {
+        "type": "object",
+        "properties": {
+          "regionId": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "regionId"
+        ]
+      },
+      "FlexiConnectCookprogramSummaryDto": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Garprog_Name": {
+            "type": "string"
+          },
+          "Kategorie_ID": {
+            "type": "string"
+          },
+          "Foto": {
+            "type": "string"
+          },
+          "Piktogramm_FLAG": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "Garprog_Name",
+          "ID",
+          "Kategorie_ID",
+          "Piktogramm_FLAG"
+        ]
+      },
+      "StringResponse": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      },
+      "ErrorMessage": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "description": {
+            "type": "string"
+          },
+          "errorClass": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "component": {
+            "type": "string"
+          },
+          "serviceCode": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "component",
+          "date",
+          "description",
+          "errorClass",
+          "serviceCode"
+        ]
+      },
+      "ErrorHistorySummaryDto": {
+        "type": "object",
+        "properties": {
+          "lastError": {
+            "$ref": "#/components/schemas/ErrorMessage"
+          }
+        }
+      },
+      "DeviceDownloadDto": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "type": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "state": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "in-progress",
+              "completed",
+              "download-failed",
+              "invalid-container-content",
+              "content-type-not-supported",
+              "no-space-left-on-device"
+            ]
+          },
+          "content": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "state",
+          "status",
+          "timestamp",
+          "type"
+        ]
+      },
+      "DeviceDayOperatingPercentages": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cookprograms": {
+            "type": "number",
+            "format": "double"
+          },
+          "cleanings": {
+            "type": "number",
+            "format": "double"
+          },
+          "dormant": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "required": [
+          "cleanings",
+          "cookprograms",
+          "deviceId",
+          "dormant"
+        ]
+      },
+      "OperatingPercentages": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deviceDayOperatingPercentages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeviceDayOperatingPercentages"
+            }
+          }
+        },
+        "required": [
+          "day",
+          "deviceDayOperatingPercentages"
+        ]
+      },
+      "FileDownloadLinkDto": {
+        "type": "object",
+        "properties": {
+          "downloadLink": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "downloadLink",
+          "fileName"
+        ]
+      },
+      "DeviceOperatingHoursDto": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hours": {
+            "type": "number",
+            "format": "double"
+          },
+          "isOnline": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "deviceId",
+          "hours",
+          "isOnline"
+        ]
+      },
+      "OperatingHoursDto": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deviceOperatingHours": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeviceOperatingHoursDto"
+            }
+          }
+        },
+        "required": [
+          "day",
+          "deviceOperatingHours"
+        ]
+      },
+      "DayOperations": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "operations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Operation"
+            }
+          }
+        },
+        "required": [
+          "deviceId",
+          "operations"
+        ]
+      },
+      "Operation": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "start",
+          "status"
+        ]
+      },
+      "HaccpProtocol": {
+        "type": "object",
+        "properties": {
+          "energySource": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "programs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HaccpProtocolProgram"
+            }
+          },
+          "devicePowerModel": {
+            "type": "boolean"
+          },
+          "temperatureUnit": {
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "devicePowerModel",
+          "energySource",
+          "programs"
+        ]
+      },
+      "HaccpProtocolProgram": {
+        "type": "object",
+        "properties": {
+          "cookprogram": {
+            "type": "string"
+          },
+          "start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "stop": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "powerConsumption": {
+            "type": "number",
+            "format": "double"
+          },
+          "waterConsumption": {
+            "$ref": "#/components/schemas/Water"
+          },
+          "canceled": {
+            "type": "boolean"
+          },
+          "process": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "zone": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HaccpProtocolProgramStep"
+            }
+          },
+          "isManualProgram": {
+            "type": "boolean"
+          },
+          "isCleaning": {
+            "type": "boolean"
+          },
+          "isWithPowerLevel": {
+            "type": "boolean"
+          },
+          "temperatureUnit": {
+            "type": "string",
+            "writeOnly": true
+          },
+          "cleaning": {
+            "type": "boolean",
+            "writeOnly": true
+          },
+          "manualProgram": {
+            "type": "boolean",
+            "writeOnly": true
+          },
+          "withPowerLevel": {
+            "type": "boolean",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "canceled",
+          "cookprogram",
+          "isCleaning",
+          "isManualProgram",
+          "isWithPowerLevel",
+          "powerConsumption",
+          "process",
+          "start",
+          "steps",
+          "waterConsumption",
+          "zone"
+        ]
+      },
+      "HaccpProtocolProgramStep": {
+        "type": "object",
+        "properties": {
+          "processStepNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "processState": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cookStep": {
+            "type": "string"
+          },
+          "preheating": {
+            "type": "boolean"
+          },
+          "waitToContinue": {
+            "type": "boolean"
+          },
+          "preset": {
+            "type": "boolean"
+          },
+          "default": {
+            "type": "boolean"
+          },
+          "setTime": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "duration": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "stop": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "setTemperature": {
+            "$ref": "#/components/schemas/Temperature"
+          },
+          "minTemperature": {
+            "$ref": "#/components/schemas/Temperature"
+          },
+          "maxTemperature": {
+            "$ref": "#/components/schemas/Temperature"
+          },
+          "setCoreTemperature": {
+            "$ref": "#/components/schemas/Temperature"
+          },
+          "maxCoreTemperature": {
+            "$ref": "#/components/schemas/Temperature"
+          },
+          "allTemperatures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Temperature"
+            }
+          },
+          "allCoreTemperatures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Temperature"
+            }
+          },
+          "zoneGrilling": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "aborted": {
+            "type": "boolean"
+          },
+          "temperatureUnit": {
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "aborted",
+          "allCoreTemperatures",
+          "allTemperatures",
+          "cookStep",
+          "default",
+          "duration",
+          "maxCoreTemperature",
+          "maxTemperature",
+          "minTemperature",
+          "preheating",
+          "preset",
+          "processState",
+          "processStepNumber",
+          "setCoreTemperature",
+          "setTemperature",
+          "setTime",
+          "start",
+          "stop",
+          "waitToContinue",
+          "zoneGrilling"
+        ]
+      },
+      "Temperature": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "number",
+            "format": "double"
+          },
+          "unit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "unit"
+        ]
+      },
+      "Water": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "number",
+            "format": "double"
+          },
+          "unit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "unit",
+          "value"
+        ]
+      },
+      "SetValues": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "setDisplayedValues": {
+            "type": "number",
+            "format": "double"
+          },
+          "setTemperatureValues": {
+            "type": "number",
+            "format": "double"
+          },
+          "setCoreTemperature": {
+            "type": "number",
+            "format": "double"
+          },
+          "setProcessTime": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "programName": {
+            "type": "string"
+          },
+          "programUId": {
+            "type": "string"
+          },
+          "programId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "setCookingStepEndCondition": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "setCookingStepEndCondition1": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "setCookingStepEndCondition2": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "setCookingStepEndCondition3": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "setCookingStepEndCondition4": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "setPowerLevelMax": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nominalPower": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "demoMode": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "date",
+          "demoMode",
+          "nominalPower",
+          "programId",
+          "programName",
+          "programUId",
+          "setCookingStepEndCondition",
+          "setCookingStepEndCondition1",
+          "setCookingStepEndCondition2",
+          "setCookingStepEndCondition3",
+          "setCookingStepEndCondition4",
+          "setCoreTemperature",
+          "setDisplayedValues",
+          "setPowerLevelMax",
+          "setProcessTime",
+          "setTemperatureValues"
+        ]
+      },
+      "HaccpProtocolEvent": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "stop": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "start",
+          "status",
+          "stop"
+        ]
+      },
+      "ActualValues": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "temperature1": {
+            "type": "number",
+            "format": "double"
+          },
+          "coreTemperature": {
+            "type": "number",
+            "format": "double"
+          },
+          "bottomTemperature": {
+            "type": "number",
+            "format": "double"
+          },
+          "cupTemperature1": {
+            "type": "number",
+            "format": "double"
+          },
+          "timeRemaining": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "actualTemperature": {
+            "type": "number",
+            "format": "double"
+          },
+          "actualDisplayedValues": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "required": [
+          "actualDisplayedValues",
+          "actualTemperature",
+          "bottomTemperature",
+          "coreTemperature",
+          "cupTemperature1",
+          "date",
+          "temperature1",
+          "timeRemaining"
+        ]
+      },
+      "ConsumptionDto": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "water": {
+            "$ref": "#/components/schemas/Water"
+          },
+          "power1": {
+            "type": "number",
+            "format": "double"
+          },
+          "power2": {
+            "type": "number",
+            "format": "double"
+          },
+          "power3": {
+            "type": "number",
+            "format": "double"
+          },
+          "power4": {
+            "type": "number",
+            "format": "double"
+          },
+          "operating": {
+            "type": "number",
+            "format": "double"
+          },
+          "waterFilterNominal": {
+            "$ref": "#/components/schemas/Water"
+          },
+          "waterFilterActual": {
+            "$ref": "#/components/schemas/Water"
+          },
+          "isOnline": {
+            "type": "boolean"
+          },
+          "totalPower": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "required": [
+          "date",
+          "deviceId",
+          "isOnline",
+          "operating",
+          "power1",
+          "power2",
+          "power3",
+          "power4",
+          "totalPower",
+          "water",
+          "waterFilterActual",
+          "waterFilterNominal"
+        ]
+      },
+      "ActualPower": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actualPower": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "required": [
+          "actualPower",
+          "date",
+          "deviceId"
+        ]
+      },
+      "DeviceDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "error": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "serialNumber": {
+            "type": "string"
+          },
+          "regionId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "location": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "storeNr": {
+            "type": "string"
+          },
+          "position": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "lastCleaning": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastProgramDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "cleaningStatus": {
+            "type": "boolean"
+          },
+          "cleaningInterval": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "energySource": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "type": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "generation": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "firmwareVersion": {
+            "type": "string"
+          },
+          "latestFirmwareVersion": {
+            "type": "string"
+          },
+          "firmwareUpdateDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "firmwareUpdateAvailable": {
+            "type": "boolean"
+          },
+          "firmwareUpdatePending": {
+            "type": "boolean"
+          },
+          "operatingTotal": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "operatingDaily": {
+            "type": "number",
+            "format": "double"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "float"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "float"
+          },
+          "connectState": {
+            "type": "boolean"
+          },
+          "lastConnected": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "poweredOnSince": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "uploadCookbooks": {
+            "type": "boolean"
+          },
+          "isWithLoa": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isWithLift": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "softwareIdentifier": {
+            "type": "string"
+          },
+          "isWithSingleEnergySource": {
+            "type": "boolean"
+          },
+          "isWithWaterSupply": {
+            "type": "boolean"
+          },
+          "devicePowerModel": {
+            "type": "boolean"
+          },
+          "isNewCookbookJson": {
+            "type": "boolean"
+          },
+          "revision": {
+            "type": "string"
+          },
+          "devicePosition": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "active",
+          "address",
+          "available",
+          "cleaningInterval",
+          "cleaningStatus",
+          "connectState",
+          "devicePosition",
+          "devicePowerModel",
+          "energySource",
+          "error",
+          "firmwareUpdateAvailable",
+          "firmwareUpdatePending",
+          "firmwareVersion",
+          "generation",
+          "id",
+          "isNewCookbookJson",
+          "isWithSingleEnergySource",
+          "isWithWaterSupply",
+          "latestFirmwareVersion",
+          "location",
+          "model",
+          "name",
+          "operatingDaily",
+          "operatingTotal",
+          "position",
+          "regionId",
+          "revision",
+          "serialNumber",
+          "size",
+          "storeNr",
+          "type",
+          "uploadCookbooks"
+        ]
+      },
+      "CleaningStatus": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "cleanings": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cleaningStatus": {
+            "type": "boolean"
+          },
+          "interval": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "cleaningStatus",
+          "cleanings",
+          "date",
+          "deviceId",
+          "interval"
+        ]
+      },
+      "CleaningEntry": {
+        "type": "object",
+        "properties": {
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "cleaningType": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "cleaningType",
+          "time"
+        ]
+      },
+      "CleaningHistoryDto": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "deviceName": {
+            "type": "string"
+          },
+          "deviceType": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "model": {
+            "type": "string"
+          },
+          "regionName": {
+            "type": "string"
+          },
+          "position": {
+            "type": "string"
+          },
+          "serialNumber": {
+            "type": "string"
+          },
+          "cleaningStatus": {
+            "type": "boolean"
+          },
+          "cleaningInterval": {
+            "type": "string"
+          },
+          "storeNr": {
+            "type": "string"
+          },
+          "cleanings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CleaningHistoryEntryDto"
+            }
+          }
+        },
+        "required": [
+          "cleaningInterval",
+          "cleaningStatus",
+          "cleanings",
+          "deviceId",
+          "deviceName",
+          "deviceType",
+          "model",
+          "position",
+          "regionName",
+          "serialNumber",
+          "storeNr"
+        ]
+      },
+      "CleaningHistoryEntryDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "cleaningStatus": {
+            "type": "boolean"
+          },
+          "cleanings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CleaningEntry"
+            }
+          },
+          "cleaningInterval": {
+            "type": "string"
+          },
+          "timesFormatted": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "cleaningInterval",
+          "cleaningStatus",
+          "cleanings",
+          "date",
+          "timesFormatted"
+        ]
+      },
+      "CookprogramSelectionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "oem": {
+            "type": "string"
+          },
+          "favourite": {
+            "type": "boolean"
+          },
+          "image": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "categories",
+          "favourite",
+          "id",
+          "name"
+        ]
+      },
+      "CookprogramCourseDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "canceled": {
+            "type": "boolean"
+          },
+          "process": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "canceled",
+          "name",
+          "process"
+        ]
+      },
+      "ActiveCookprogramDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "process": {
+            "type": "string"
+          },
+          "actualTemperature": {
+            "type": "number",
+            "format": "double"
+          },
+          "setTemperature": {
+            "type": "number",
+            "format": "double"
+          },
+          "doorOpen": {
+            "type": "boolean"
+          },
+          "isWithPowerLevel": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "doorOpen",
+          "isWithPowerLevel",
+          "name",
+          "process"
+        ]
+      },
+      "CookbookListDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cookbookId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "author": {
+            "type": "string"
+          },
+          "creationDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "deviceSerial": {
+            "type": "string"
+          },
+          "deviceType": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "oem": {
+            "type": "string"
+          },
+          "cookprogramCategories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "active",
+          "author",
+          "cookbookId",
+          "cookprogramCategories",
+          "creationDate",
+          "deviceSerial",
+          "deviceType",
+          "id",
+          "name",
+          "version"
+        ]
+      },
+      "TableViewResponseDtoCookbookListDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CookbookListDto"
+            }
+          },
+          "numberOfFoundItems": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "items",
+          "numberOfFoundItems"
+        ]
+      },
+      "CookprogramShortDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "CookbookHistoryEntryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cookbookId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "entryTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "user": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "addedCookprograms": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "removedCookprograms": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "dateDeleted": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "addedCookprograms",
+          "cookbookId",
+          "deleted",
+          "entryTime",
+          "id",
+          "name",
+          "removedCookprograms",
+          "user",
+          "version"
+        ]
+      },
+      "TableViewResponseDtoCookbookHistoryEntryDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CookbookHistoryEntryDto"
+            }
+          },
+          "numberOfFoundItems": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "items",
+          "numberOfFoundItems"
+        ]
+      },
+      "DevicesCookbookDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "author": {
+            "type": "string"
+          },
+          "deploymentDate": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "author",
+          "deploymentDate",
+          "id",
+          "name",
+          "version"
+        ]
+      },
+      "DevicesCookbooksDto": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "deviceName": {
+            "type": "string"
+          },
+          "activeCookbook": {
+            "$ref": "#/components/schemas/DevicesCookbookDto"
+          },
+          "scheduledCookbook": {
+            "$ref": "#/components/schemas/DevicesCookbookDto"
+          }
+        },
+        "required": [
+          "activeCookbook",
+          "deviceId",
+          "deviceName",
+          "scheduledCookbook"
+        ]
+      },
+      "TableViewResponseDtoDevicesCookbooksDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DevicesCookbooksDto"
+            }
+          },
+          "numberOfFoundItems": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "items",
+          "numberOfFoundItems"
+        ]
+      },
+      "CookbookToDeviceAssignmentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "deviceId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "deviceType": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "storeNr": {
+            "type": "string"
+          },
+          "position": {
+            "type": "string"
+          },
+          "deploymentDate": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "address",
+          "deploymentDate",
+          "deviceId",
+          "deviceType",
+          "id",
+          "name",
+          "position",
+          "storeNr"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "api-key": {
+        "type": "apiKey",
+        "description": "Use the API key extracted from ConnectedKitchen.",
+        "name": "api-key",
+        "in": "header"
+      }
+    }
+  }
+}

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ConnectedKitchen · HKI Gateway</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head>
+<body>
+<header><div><span class="eyebrow">CONNECTEDKITCHEN / OPC UA</span><h1>HKI Gateway</h1></div><button id="logout" class="secondary">Abmelden</button></header>
+<main>
+<div id="message" role="status"></div><div id="mode" class="banner"></div>
+<section><h2>Betriebszustand</h2><p id="summary">Diagnose wird geladen …</p><button id="refresh" class="secondary">Aktualisieren</button><button id="test">API-Verbindung testen</button>
+<p>Prozess, OPC-UA-Bereitschaft, API-Erreichbarkeit und Messwertqualität sind getrennte Zustände. Ein erfolgreicher Abruf beweist keinen aktuellen Messwert.</p>
+<div class="scroll"><table><thead><tr><th>Gerät / Datengruppe</th><th>Quelle</th><th>Letzter erfolgreicher Abruf (UTC)</th><th>Diagnose</th></tr></thead><tbody id="health"></tbody></table></div></section>
+<section><h2>Verbindung und Abfrage</h2><p>Konfigurationsänderungen werden validiert und gespeichert. Sie werden nach einem Neustart des Gateway-Prozesses aktiv. Ein neuer API-Key gilt beim nächsten Abruf.</p>
+<form id="settings"><div class="grid">
+<label>API-Basis-URL<input id="apiBaseUrl" type="url" required></label>
+<label>Lokale CA-Datei (optional, Pfad im Server)<input id="apiCaFile" placeholder="/certificates/local-ca.pem"></label>
+<label>Inventarintervall (s)<input id="inventoryIntervalSeconds" type="number" min="1" max="86400"></label>
+<label>Istwertintervall (s)<input id="actualIntervalSeconds" type="number" min="1" max="86400"></label>
+<label>Sollwertintervall (s)<input id="setIntervalSeconds" type="number" min="1" max="86400"></label>
+<label>Veraltungsgrenze ab Messzeit (s)<input id="staleAfterSeconds" type="number" min="1"></label>
+<label>Historisches Abfragefenster (s)<input id="historyWindowSeconds" type="number" min="1" max="604800"></label>
+<label>HTTP-Zeitlimit (s)<input id="httpTimeoutSeconds" type="number" min="1" max="120"></label>
+<label>Maximale parallele HTTP-Anfragen<input id="maxParallelRequests" type="number" min="1" max="16"></label>
+</div><h3>OPC-UA-Netzwerk</h3><div class="grid">
+<label>Bind-Adresse<input id="uaBindAddress" required></label><label>TCP-Port<input id="uaPort" type="number" min="1024" max="65535"></label>
+<label>Angekündigter Endpoint (DNS/NAT)<input id="uaEndpointUrl" required></label></div>
+<h3>Geräte und Profile</h3><p>Keine automatische Zuordnung numerischer API-Gerätetypen. Stammdaten müssen vom Typenschild oder einer belastbaren Gerätequelle stammen. Dynamische Messwerte dürfen keine Konfigurationskonstanten sein.</p>
+<button type="button" id="inventory" class="secondary">Geräte aus aktivem API-Inventar anzeigen</button><div id="inventoryList"></div><div id="devices"></div>
+<button type="submit">Konfiguration validieren und speichern</button><span id="pending"></span>
+</form>
+<div class="actions"><a href="/api/config/export" download>Geheimnisfreien Export herunterladen</a><label>Konfiguration importieren<input id="import" type="file" accept=".json,application/json"></label></div>
+</section>
+<section><h2>API-Zugang</h2><p id="keyStatus"></p><form id="secretForm"><label>Neuen API-Key sicher hinterlegen<input id="apiKey" type="password" autocomplete="new-password" required maxlength="4096"></label><button>API-Key ersetzen</button></form><p>Gespeicherte Schlüssel werden nie erneut an den Browser ausgegeben. Der Export enthält weder API-Key noch Passwort-Hashes.</p></section>
+<section><h2>OPC-UA-Sicherheit</h2><p>Standard: SignAndEncrypt / Basic256Sha256, explizite Client-Zertifikatsfreigabe und eigene OPC-UA-Benutzer. Alle Rollen sind im lesenden MVP ohne Geräte-Schreibrechte. Web-Anmeldung und API-Key sind davon getrennt.</p>
+<a href="/api/ua/certificate" download>Öffentliches Serverzertifikat herunterladen</a>
+<h3>OPC-UA-Benutzer</h3><ul id="users"></ul><form id="uaUserForm"><div class="grid">
+<label>Benutzername<input id="uaUsername" required minlength="3" maxlength="64"></label><label>Neues Passwort<input id="uaPassword" type="password" required minlength="12" maxlength="256" autocomplete="new-password"></label>
+<label>Rolle<select id="uaRole"><option>Observer</option><option>Operator</option><option>Administrator</option></select></label></div><button>Benutzer anlegen / Passwort ersetzen</button></form>
+<h3>Zertifikatsvertrauen</h3><p>Nur überprüfte öffentliche DER-Zertifikate hochladen. Abgewiesene Zertifikate werden niemals automatisch freigegeben. Änderungen gelten für neue Verbindungen; vorhandene Sitzungen bei einem Sicherheitsvorfall beenden.</p>
+<label>Client-Zertifikat freigeben<input id="certificate" type="file" accept=".der,.cer"></label><div id="trust"></div></section>
+<section><h2>Mapping-Lücken und Datenqualität</h2><ul id="limitations"></ul><div class="scroll"><table><thead><tr><th>Knoten / Typ</th><th>Wert</th><th>OPC-UA-Status</th><th>Messzeit (UTC)</th><th>Begründung</th></tr></thead><tbody id="nodes"></tbody></table></div></section>
+<footer>DIN SPEC 18898, bereitgestellte konsolidierte Fassung · offizielles Küchenmodell 1.00 (2019-07-12) · kein Zertifizierungs- oder Vollkonformitätsnachweis.</footer>
+</main></body></html>
