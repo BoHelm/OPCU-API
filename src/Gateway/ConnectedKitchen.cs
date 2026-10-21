@@ -14,10 +14,13 @@ public sealed class ConnectedKitchenClient : IDisposable
     private readonly HttpClient http;
     private readonly SemaphoreSlim slots;
     private readonly X509Certificate2? rootCa;
+    private readonly string? demoKeyFile;
     private long blockedUntil;
-    public ConnectedKitchenClient(GatewayConfig config, GatewayStore store)
+    private readonly DiagnosticsLog? log;
+    public ConnectedKitchenClient(GatewayConfig config, GatewayStore store, DiagnosticsLog? log = null)
     {
-        this.config = config; this.store = store;
+        this.config = config; this.store = store; this.log = log;
+        demoKeyFile = config.Demo ? Environment.GetEnvironmentVariable("GATEWAY_DEMO_KEY_FILE") : null;
         var handler = new HttpClientHandler { AllowAutoRedirect = false };
         if (!string.IsNullOrWhiteSpace(config.ApiCaFile))
         {
@@ -37,9 +40,56 @@ public sealed class ConnectedKitchenClient : IDisposable
     }
     public async Task<JsonElement> GetAsync(string path, CancellationToken ct)
     {
+        // Nur den intern erzeugten API-Pfad protokollieren; keine URL, Query, Header oder Response-Inhalte.
+        var target = path.Split('?')[0];
+        var timer = System.Diagnostics.Stopwatch.StartNew();
+        log?.Add("Info", "REST", $"GET {target}: Abfrage angefordert.");
+        try
+        {
+            var rows = await GetCoreAsync(path, ct);
+            log?.Add("Info", "REST", $"GET {target}: {rows.GetArrayLength()} Datensätze empfangen ({timer.ElapsedMilliseconds} ms).");
+            return rows;
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            log?.Add("Info", "REST", $"GET {target}: Abfrage abgebrochen.");
+            throw;
+        }
+        catch (SourceFailure e)
+        {
+            log?.Add("Fehler", "REST", $"GET {target}: {e.Message} ({timer.ElapsedMilliseconds} ms).");
+            throw;
+        }
+        catch (Exception e)
+        {
+            log?.Add("Fehler", "REST", $"GET {target}: interner Abruffehler ({e.GetType().Name}).");
+            throw;
+        }
+    }
+    private async Task<JsonElement> GetCoreAsync(string path, CancellationToken ct)
+    {
         var delay = new DateTime(Interlocked.Read(ref blockedUntil), DateTimeKind.Utc) - DateTime.UtcNow;
         if (delay > TimeSpan.Zero) throw new SourceFailure("429: gemeinsame Retry-After-Sperre.", StatusCodes.BadServerTooBusy, delay);
         var apiKey = store.ReadApiKey();
+        if (apiKey == null && demoKeyFile != null)
+        {
+            // Visual Studio startet mehrere Projekte parallel. Der Simulator darf später
+            // starten, ohne den Web-/OPC-UA-Host durch FileNotFoundException zu beenden.
+            // Ausschließlich im ausdrücklich aktivierten Demo-Modus; echte Keys kommen
+            // weiterhin über die geschützte Administration und niemals aus Demo-Dateien.
+            try
+            {
+                var value = (await File.ReadAllTextAsync(demoKeyFile, ct)).Trim();
+                if (string.IsNullOrWhiteSpace(value)) throw new IOException("Simulationsschlüssel noch nicht vollständig geschrieben.");
+                store.SetApiKey(value);
+                apiKey = value;
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                throw new SourceFailure("Simulationsschlüssel noch nicht verfügbar; DemoApi starten und Dateizugriff prüfen.",
+                    StatusCodes.BadWaitingForInitialData, TimeSpan.FromSeconds(1));
+            }
+        }
         if (apiKey == null) throw new SourceFailure("API-Key ist nicht eingerichtet.", StatusCodes.BadUserAccessDenied, TimeSpan.FromSeconds(60));
         await slots.WaitAsync(ct);
         try
@@ -83,7 +133,8 @@ public sealed class ConnectedKitchenClient : IDisposable
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         { throw new SourceFailure("HTTP-Zeitüberschreitung.", StatusCodes.BadTimeout); }
-        catch (HttpRequestException) { throw new SourceFailure("Verbindungs- oder TLS-Fehler; Zertifikatsvertrauen prüfen.", StatusCodes.BadNoCommunication); }
+        catch (HttpRequestException e)
+        { throw new SourceFailure($"Verbindungs-/TLS-Fehler ({e.HttpRequestError}); Netzwerk und Zertifikatsvertrauen prüfen.", StatusCodes.BadNoCommunication); }
         catch (JsonException) { throw new SourceFailure("API liefert ungültiges JSON.", StatusCodes.BadDecodingError); }
         finally { slots.Release(); }
     }
@@ -100,7 +151,7 @@ public sealed class SourceFailure(string message, uint status, TimeSpan retryAft
 /// <summary>Asynchroner Poller mit unabhängigem Backoff je Gerät/Zone/Datengruppe und einem globalen HTTP-Limit.</summary>
 /// <remarks>Historische actualValues/setValues liefern höchstens den neuesten Eintrag im konfigurierten Fenster.
 /// Es gibt keine dokumentierte Garantie, dass das ein aktueller Livewert ist. Die Messzeit entscheidet über Qualität.</remarks>
-public sealed class PollingService(GatewayConfig config, GatewayCache cache, ConnectedKitchenClient client, ModelCatalog catalog) : BackgroundService
+public sealed class PollingService(GatewayConfig config, GatewayCache cache, ConnectedKitchenClient client, ModelCatalog catalog, DiagnosticsLog log) : BackgroundService
 {
     private sealed class Job(string key, int interval, DeviceConfig? device = null, ZoneConfig? zone = null, string? group = null)
     {
@@ -120,6 +171,9 @@ public sealed class PollingService(GatewayConfig config, GatewayCache cache, Con
             foreach (var z in d.Zones)
                 foreach (var group in z.Bindings.Select(b => b.Group).Distinct())
                     jobs.Add(new($"{d.ApiId}/{z.Id}/{group}", group == "Actual" ? config.ActualIntervalSeconds : config.SetIntervalSeconds, d, z, group));
+        log.Add("Info", "Polling", $"Polling startet: {config.Devices.Count(d => d.Enabled)} aktive Geräte, {jobs.Count - 1} Messwert-Abfragegruppen.");
+        if (jobs.Count == 1)
+            log.Add("Warnung", "Polling", "Keine Messwertabfragen eingerichtet. Geräte müssen aktiviert und Feldzuordnungen in ihren Zonen hinterlegt sein; gespeicherte Änderungen benötigen einen Neustart.");
         // Je Job eine unabhängige asynchrone Schleife: ein langsames Gerät hält nicht
         // den gesamten Scheduler an. Nur die explizite globale HTTP-Parallelität begrenzt gemeinsame Ressourcen.
         await Task.WhenAll(jobs.Select(j => Loop(j, stoppingToken)));
@@ -138,6 +192,7 @@ public sealed class PollingService(GatewayConfig config, GatewayCache cache, Con
     {
         try
         {
+            log.Add("Info", "Polling", $"{job.Key}: Abruf startet.");
             if (job.Device == null)
             {
                 var rows = await client.GetAsync("api/devices", ct);
@@ -158,10 +213,12 @@ public sealed class PollingService(GatewayConfig config, GatewayCache cache, Con
                 if (present.TryGetValue(job.Device.ApiId, out var found) && !found)
                 {
                     foreach (var b in bindings) cache.Fail(GatewayCache.Key(job.Device.Identity, job.Zone.Id, b.Target), StatusCodes.BadNotConnected, "Gerät fehlt im API-Inventar.");
+                    log.Add("Warnung", "Polling", $"{job.Key}: Gerät fehlt im API-Inventar.");
                 }
                 else if (rows.GetArrayLength() == 0)
                 {
                     foreach (var b in bindings) cache.Fail(GatewayCache.Key(job.Device.Identity, job.Zone.Id, b.Target), StatusCodes.BadNoData, "Leere historische Datenreihe; kein aktueller Messwert belegbar.");
+                    log.Add("Warnung", "Polling", $"{job.Key}: Leere historische Datenreihe im konfigurierten Abfragefenster.");
                 }
                 else
                 {
@@ -173,12 +230,16 @@ public sealed class PollingService(GatewayConfig config, GatewayCache cache, Con
                         var key = GatewayCache.Key(job.Device.Identity, job.Zone.Id, b.Target);
                         cache.Set(key, row.ValueKind != JsonValueKind.Object ? Sample.Missing(StatusCodes.BadDecodingError, "Ungültiger Datensatz.") :
                             Mapping.Translate(row, b, catalog.ResolveDeclaration(Profiles.All[job.Device.Profile].ZoneType, b.Target)!, fetchedAt));
+                        var sample = cache.Get(key, config.StaleAfterSeconds);
+                        if (sample.Status != StatusCodes.Good)
+                            log.Add("Warnung", "Mapping", $"{job.Key}/{b.Target}: {StatusCode.LookupSymbolicId(sample.Status)} – {sample.Reason}");
                     }
                 }
                 cache.Source(job.Key, true, "Historische Zeitreihe abgerufen; Messzeit und Qualität separat prüfen.");
             }
             job.Failures = 0;
             job.Next = DateTime.UtcNow.AddSeconds(job.Interval);
+            log.Add("Info", "Polling", $"{job.Key}: Abruf verarbeitet. Nächster Abruf um {job.Next:HH:mm:ss} UTC.");
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
         catch (Exception e)
@@ -190,7 +251,9 @@ public sealed class PollingService(GatewayConfig config, GatewayCache cache, Con
                     cache.Fail(GatewayCache.Key(job.Device.Identity, job.Zone.Id, b.Target), failure.Status, failure.Message);
             job.Failures = Math.Min(job.Failures + 1, 8);
             var seconds = Math.Max(Math.Min(300, job.Interval * Math.Pow(2, job.Failures - 1)), failure.RetryAfter.TotalSeconds);
+            if (config.Demo && failure.Status == StatusCodes.BadWaitingForInitialData) seconds = 1;
             job.Next = DateTime.UtcNow.AddSeconds(Math.Clamp(seconds, 1, 86400));
+            log.Add("Fehler", "Polling", $"{job.Key}: {failure.Message} Wiederholung um {job.Next:HH:mm:ss} UTC (Fehlversuch {job.Failures}).");
         }
     }
 }

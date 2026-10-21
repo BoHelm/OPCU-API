@@ -11,6 +11,7 @@ fs.mkdirSync(directory,{recursive:true,mode:0o700});
 const browserPassword=crypto.randomBytes(32).toString("base64url");
 const uaPassword=crypto.randomBytes(32).toString("base64url");
 const dockerEnvironment={...process.env,DOCKER_CONFIG:process.env.DOCKER_CONFIG||"/workspace/.cache/docker"};
+const composeFile=process.env.TEST_COMPOSE_FILE||"compose.demo.yaml";
 function docker(args){return execFileSync("docker",args,{cwd:root,env:dockerEnvironment,encoding:"utf8",stdio:["ignore","pipe","pipe"]});}
 const base=process.env.TEST_BROWSER_URL||"http://127.0.0.1:5080";
 const probe=path.join(root,"tools/UaProbe/bin/Debug/net10.0/UaProbe.dll");
@@ -21,7 +22,7 @@ async function run(){
   const errors=[];page.on("pageerror",error=>errors.push(error.message));
   await page.goto(base);
   if(page.url().endsWith("/setup")){
-   const bootstrap=docker(["compose","-f","compose.demo.yaml","exec","-T","gateway","cat","/keys/gateway/bootstrap-token"]).trim();
+   const bootstrap=docker(["compose","-f",composeFile,"exec","-T","gateway","cat","/keys/gateway/bootstrap-token"]).trim();
    await page.locator('[name="username"]').fill("browser-admin");
    await page.locator('[name="password"]').fill(browserPassword);
    await page.locator('[name="token"]').fill(bootstrap);
@@ -34,6 +35,16 @@ async function run(){
   await page.waitForFunction(()=>document.querySelector("#nodes").children.length>20);
   assert.match(await page.locator("#mode").textContent(),/SIMULATION/);
   assert.equal(await page.locator("#apiKey").inputValue(),"");
+  await page.waitForFunction(()=>document.querySelectorAll("#logOutput .log-line").length>0);
+  await page.locator("#logPause").click();
+  assert.equal(await page.locator("#logPause").getAttribute("aria-pressed"),"true");
+  assert.match(await page.locator("#logStatus").textContent(),/pausiert/);
+  await page.locator("#logLevel").selectOption("errors");
+  assert.equal(await page.locator("#logOutput .log-line:not(.log-error)").count(),0);
+  await page.locator("#logLevel").selectOption("all");
+  await page.locator("#logPause").click();
+  assert.match(await page.locator("#namespaceUri").inputValue(),/^urn:kitchen-gateway:/);
+  assert.match(await page.locator("#applicationUri").inputValue(),/^urn:kitchen-gateway:application:/);
   await page.locator("#test").click();
   await page.waitForFunction(()=>document.querySelector("#message").textContent.includes('"connected":true'));
   await page.locator("#actualIntervalSeconds").fill("3");
@@ -50,7 +61,7 @@ async function run(){
   const certificate=await page.request.get(base+"/api/ua/certificate");
   assert.equal(certificate.status(),200);fs.writeFileSync(path.join(directory,"server.der"),await certificate.body());
   fs.writeFileSync(path.join(directory,"ua-password"),uaPassword,{mode:0o600});
-  const args=["probe","--pki",path.join(directory,"pki"),"--endpoint","opc.tcp://localhost:4840/kitchen",
+  const args=["probe","--pki",path.join(directory,"pki"),"--endpoint",process.env.TEST_UA_ENDPOINT||"opc.tcp://localhost:4840/kitchen",
    "--server-cert",path.join(directory,"server.der"),"--user","browser-reader","--password-file",path.join(directory,"ua-password")];
   execFileSync("dotnet",[probe,...args,"--seconds","4","--output",path.join(directory,"ua-before.json")],{cwd:root,stdio:"pipe",timeout:45000});
   await page.locator("#refresh").click();
@@ -59,7 +70,7 @@ async function run(){
   const exportResponse=await page.request.get(base+"/api/config/export");
   const exported=await exportResponse.text();
   assert(!exported.includes(uaPassword));assert(!exported.includes(browserPassword));assert(!exported.includes("passwordHash"));
-  docker(["compose","-f","compose.demo.yaml","restart","gateway"]);
+  docker(["compose","-f",composeFile,"restart","gateway"]);
   const deadline=Date.now()+40000;
   while(Date.now()<deadline){
    try{const response=await page.request.get(base+"/health/ready");if(response.status()===200)break;}catch{}
@@ -73,9 +84,10 @@ async function run(){
   assert.deepEqual([...new Set(before.references.map(r=>r.nodeId))].sort(),[...new Set(after.references.map(r=>r.nodeId))].sort());
   assert.deepEqual(errors,[]);
   const result={passed:true,browser:"Chromium",simulationOnly:true,configurationSaved:true,secretNotReturned:true,
-   uaEncrypted:true,subscriptionNotifications:before.notifications.length,stableNodeIdsAfterContainerRestart:true,javascriptErrors:errors};
+   uaEncrypted:true,liveLogFilterAndPause:true,neutralIdentity:true,
+   subscriptionNotifications:before.notifications.length,stableNodeIdsAfterContainerRestart:true,javascriptErrors:errors};
   fs.writeFileSync(path.join(directory,"summary.json"),JSON.stringify(result,null,2));
   console.log(JSON.stringify({...result,artifacts:directory}));
  }finally{await browser.close();}
 }
-run().catch(error=>{console.error(error.message);process.exitCode=1;});
+run().catch(error=>{console.error(error.stack||error.message);process.exitCode=1;});

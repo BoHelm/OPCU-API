@@ -3,6 +3,12 @@
 **/TestResults/
 .state/
 .keys/
+.vs/
+**/.state/
+**/.state-keys/
+.state-keys/
+*.suo
+*.slnLaunch.user
 .artifacts/
 .env
 *.user

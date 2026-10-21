@@ -22,6 +22,8 @@ Die Pfeile von Konfiguration zu Laufzeit bedeuten Aktivierung nach Neustart. API
 |---|---|
 | src/Gateway/Program.cs | Composition Root, sicherer Bootstrap, Web-Login/CSRF, geschützte Konfigurations-/Diagnoseendpunkte; aktive Konfiguration ist ein unveränderlicher Snapshot |
 | Configuration.cs | Geheimnisfreies Konfigurationsmodell, Profile, Plausibilität und Aktivierungssperren; kein numerischer API-Typ wird als HKI-Klasse erraten |
+| GatewayIdentity.cs | Neutrale Neuinstallation und identitätserhaltende Migration bestehender Namespace-/Anwendungs-URIs |
+| DiagnosticsLog.cs | Vom Projektteam ergänzter, begrenzter Diagnoseverlauf mit bereinigten Exception-Details; keine Geheimnisse oder ungefilterten API-Antworten |
 | ModelCatalog.cs | XML-Deklarationen, dynamische Namespace-Auflösung, Vererbung und numerische Platzhalter; keine duplizierten selbst erfundenen Standard-IDs |
 | DataQuality.cs | Sample/Cache, Status, Quellzeit, explizite Einheitenumrechnung und exakte Integerkonvertierung |
 | ConnectedKitchen.cs | Einziger REST-Adapter und Scheduler; keine HTTP-Anfrage aus einem OPC-UA-Read |
@@ -51,12 +53,16 @@ UaService startet und prüft das Anwendungszertifikat, startet anschließend Sta
 Der Runtime-Import lädt zuerst DI, dann das Kitchen-NodeSet. Die tatsächlichen Namespace-Indizes vergibt das SDK. Typkennungen werden aus URI + offizieller numerischer ID aufgelöst. Geräte-/Zoneninstanzen verwenden den separaten Hersteller-Namespace:
 
 ~~~text
-urn:bohelm:connectedkitchen:gateway
+urn:kitchen-gateway:diagnostics
 device/<persistente GUID>
 device/<persistente GUID>/zone/<explizite API-Zonennummer>/<BrowseName>
 ~~~
 
 Name, API-Typcode oder zufälliger Namespace-Index sind keine Identität. Die GUID wird in gateway.json persistiert und bei einem Import für bestehende API-IDs geschützt. Kopien eines Gateways dürfen nicht gleichzeitig mit identischer Anwendungsidentität produktiv betrieben werden.
+
+GatewayIdentity trennt die neutrale Softwareidentität vom offiziellen HKI-Modell und von Hersteller-Stammdaten der Geräte. NamespaceUri und ApplicationUri werden beim ersten Start persistiert und bei Konfigurationsimport vor Änderungen geschützt. Alte Konfigurationen ohne diese Felder behalten ihre vorherigen URIs durch eine einmalige Migration, damit Zertifikat und ExpandedNodeIds unverändert bleiben. Der separate Testclient ermittelt den Devices-Einstieg per Browse und setzt keinen Hersteller-Namespace voraus.
+
+DiagnosticsLog übernimmt den vom Projektteam ergänzten, auf 500 Einträge begrenzten RAM-Verlauf. REST-Zugang, Poller und OPC-UA-Lebenszyklus melden Aktivitäten und Startphasen; GET /api/logs bleibt im authentifizierten API-Bereich. Die Oberfläche fragt alle zwei Sekunden ab, kann filtern/pausieren und zeigt bereinigte Fehlerdetails als Text. Weder eine zusätzliche REST-Geräteabfrage pro Web-/OPC-UA-Client noch eine neue Geräte-Schreibaktion entsteht dadurch.
 
 Der Katalog traversiert Type-Hierarchien und übernimmt Pflichtvariablen und Pflichtobjekte. Konkrete Zonen erfüllen die MandatoryPlaceholder-Regel. Optionale Knoten entstehen nur bei konfigurierten Stammdaten oder expliziten Feldbindungen. AnalogItem-Instanzen erhalten die verpflichtende EURange-Eigenschaft und die im HKI-Text vorgeschriebene EngineeringUnits-Eigenschaft. Unbekannte Pflichtdaten verschwinden nicht.
 

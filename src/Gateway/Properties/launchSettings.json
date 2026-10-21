@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "Gateway (Simulation)": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "setup",
+      "applicationUrl": "http://127.0.0.1:5080",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "GATEWAY_DEMO": "true",
+        "GATEWAY_DEMO_API_URL": "http://127.0.0.1:5090",
+        "GATEWAY_DEMO_KEY_FILE": "../../.state/visual-studio-demo/demo.key",
+        "GATEWAY_DATA_DIR": "../../.state/visual-studio-demo/gateway",
+        "GATEWAY_KEY_DIR": "../../.keys/visual-studio-demo/gateway"
+      }
+    },
+    "Gateway (ConnectedKitchen)": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "setup",
+      "applicationUrl": "http://127.0.0.1:5080",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "GATEWAY_DEMO": "false",
+        "GATEWAY_DATA_DIR": "../../.state/visual-studio/gateway",
+        "GATEWAY_KEY_DIR": "../../.keys/visual-studio/gateway"
+      }
+    }
+  }
+}

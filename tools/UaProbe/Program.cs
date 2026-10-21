@@ -21,7 +21,7 @@ if (arguments.TryGetValue("server-cert", out var serverCert))
 }
 var configuration = new ApplicationConfiguration
 {
-    ApplicationName = "KitchenGateway Independent Probe", ApplicationUri = "urn:bohelm:kitchen:independent-probe",
+    ApplicationName = "KitchenGateway Independent Probe", ApplicationUri = "urn:kitchen-gateway:independent-probe",
     ApplicationType = ApplicationType.Client,
     SecurityConfiguration = new SecurityConfiguration
     {
@@ -49,9 +49,21 @@ var user = arguments.GetValueOrDefault("user") ?? throw new ArgumentException("-
 var password = File.ReadAllText(arguments["password-file"]).TrimEnd('\r', '\n');
 using var session = await Session.Create(configuration, new ConfiguredEndpoint(null, endpoint, EndpointConfiguration.Create(configuration)),
     false, true, "HKI acceptance probe", 60000, new UserIdentity(user, System.Text.Encoding.UTF8.GetBytes(password)), null);
-var vendor = session.NamespaceUris.GetIndex("urn:bohelm:connectedkitchen:gateway");
-if (vendor < 0) throw new Exception("Gateway-Namensraum fehlt.");
-var root = new NodeId("Devices", (ushort)vendor);
+// Den Einstieg browsen statt einen Hersteller-URI oder Namespace-Index vorauszusetzen.
+// Das prüft auch kundeneigene Namensräume und migrierte Bestandsinstallationen.
+var roots = await session.BrowseAsync(null, null, 1000, new BrowseDescriptionCollection
+{
+    new() { NodeId = ObjectIds.ObjectsFolder, BrowseDirection = BrowseDirection.Forward,
+        ReferenceTypeId = ReferenceTypeIds.Organizes, IncludeSubtypes = true,
+        NodeClassMask = (uint)NodeClass.Object, ResultMask = (uint)BrowseResultMask.All }
+}, CancellationToken.None);
+if (StatusCode.IsBad(roots.Results[0].StatusCode) || roots.Results[0].ContinuationPoint is { Length: > 0 })
+    throw new Exception("Gateway-Einstieg konnte nicht vollständig gebrowst werden.");
+var candidates = roots.Results[0].References.Where(r => r.BrowseName.Name == "Devices" &&
+    (!arguments.TryGetValue("namespace-uri", out var requested) ||
+        session.NamespaceUris.GetString(r.BrowseName.NamespaceIndex) == requested)).ToArray();
+if (candidates.Length != 1) throw new Exception("Devices-Einstieg fehlt oder ist mehrdeutig; optional --namespace-uri angeben.");
+var root = ExpandedNodeId.ToNodeId(candidates[0].NodeId, session.NamespaceUris);
 var visited = new HashSet<NodeId>();
 var variables = new List<NodeId>();
 var references = new List<object>();

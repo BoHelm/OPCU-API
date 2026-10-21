@@ -4,12 +4,14 @@
 
 Die Ergebniszusammenfassung steht zusätzlich maschinenlesbar in test-results.json. Ausführliche lokale TRX-/JSON-Ergebnisse entstehen unter .artifacts/. Diese Laufzeitverzeichnisse enthalten auch geschützte Test-Zugangsdaten und gehören weder in Git noch in ein öffentliches Artefakt.
 
+Beim Abgleich am **21. Oktober 2026** wurden Build, Unit-/Adaptertests, Modellcompiler, Container und die Integration über die neuen Startprofile erneut ausgeführt. Der Integrationstest verwendet einen ausdrücklich abweichenden eigenen Namespace und startet die simulierte API erst nach dem Gateway. Die zusätzlichen Tests prüfen auch den übernommenen Protokollzugriff und den Schutz bestehender Identitäten. HTTPS-Compose und das Bash-Startskript wurden zuvor am 15. Oktober geprüft; diese früheren Nachweise sind in test-results.json gesondert datiert und werden nicht als neuer Windows-/IDE-Test ausgegeben.
+
 | Prüfung | Ergebnis und Nachweis |
 |---|---|
 | Locked Restore und Build | Erfolgreich, exakt gebundene NuGet-Abhängigkeiten; keine C#-Buildwarnungen |
-| Unit-/Adaptertests | **17 bestanden, 0 fehlgeschlagen, 0 übersprungen** |
+| Unit-/Adaptertests | **22 bestanden, 0 fehlgeschlagen, 0 übersprungen**, einschließlich Identitätsmigration und Protokollbereinigung |
 | Offizieller ModelCompiler 2.8.15 | Nicht leere Klassen-/uanodes-Dateien erzeugt; SHA-256-Abgleich beider Original-NodeSets erfolgreich |
-| Native Prozessintegration | **87 Prüfungen bestanden**, getrennte REST-, Gateway- und OPC-UA-Clientprozesse |
+| Native Prozessintegration | **95 Prüfungen bestanden**, tatsächliche .NET-Startprofile, getrennte REST-, Gateway- und OPC-UA-Clientprozesse; eigener Namespace urn:example:integration:kitchen |
 | Container-Build | Gateway- und Demo-API-Images tatsächlich gebaut; SDK-SHA-512 und Debian-Paketprüfung beibehalten |
 | Compose-Demo | Beide Dienste tatsächlich gestartet, Healthchecks erfolgreich; Gateway ohne Root-Rechte |
 | Chromium | Einrichtung, Login, Konfiguration, API-Verbindungstest, Secret-Nichtausgabe, UA-Benutzer und Zertifikatsfreigabe erfolgreich; keine JavaScript-Ausnahmen |
@@ -18,12 +20,17 @@ Die Ergebniszusammenfassung steht zusätzlich maschinenlesbar in test-results.js
 | HTTPS-Compose | Zertifikats-/Hostnamenprüfung und Secure-CSRF-Cookie geprüft; Prozess- und Datenquellen-Health getrennt |
 | Lokale API-CA | Echter lokaler Kestrel-TLS-Server: konfigurierte CA akzeptiert; fehlendes Vertrauen und falscher Hostname abgewiesen |
 
+Der Container-Build meldet weiterhin den Docker-Hinweis SecretsUsedInArgOrEnv für GATEWAY_KEY_DIR. Diese Variable enthält ausschließlich einen Verzeichnispfad, keinen Schlüsselwert. Die C#-Builds haben keine Warnungen. Bei automatisch injiziertem Docker-Proxy wurde eine nicht erreichbare lokale Simulation tatsächlich nachgestellt; die Demo-Konfiguration enthält nun explizite Proxy-Ausnahmen für ihre internen Adressen.
+
 Die dokumentierten Startbefehle werden außerdem durch scripts/startup-smoke.py geprüft. Es benötigt freie Defaultports; eigene Demo-Container vorher anhalten. Das Skript führt scripts/run-demo.sh tatsächlich aus und prüft drei Simulatorgeräte, Prozess-/Datenquellen-Bereitschaft, Ersteinrichtung und das geordnete Beenden beider Prozesse.
 
 ## Was die native Integration nachweist
 
 - Webadministration verlangt Anmeldung; fehlender CSRF-Token wird vor Einrichtung und bei späteren Aktionen abgewiesen.
 - Export enthält weder API-Key noch Passwort-Hashes; der Key liegt verschlüsselt vor; falsche Konfiguration wird vor Aktivierung abgewiesen.
+- Das Gateway bleibt bei fehlender Simulationsschlüsseldatei verfügbar und verbindet die später gestartete DemoApi ohne eigenen Neustart.
+- Das neue Live-Protokoll ist ohne Anmeldung gesperrt und gibt keine eingerichteten API-Keys oder Passwörter aus.
+- Kundeneigene Namespaces funktionieren über reale UA-TCP-Verbindungen; Änderungen bestehender Node-/Anwendungsidentitäten werden beim Konfigurationsimport zurückgewiesen.
 - Der OPC-UA-Client erzeugt ein eigenes Zertifikat. Vor Freigabe wird er abgewiesen; anschließend baut er eine reale verschlüsselte UA-TCP-Session auf.
 - Browse liefert die offiziellen TypeDefinitions der drei ausgewählten Klassen und die geerbten DI-/HKI-Pflichtknoten.
 - Mehrere Kochzonen, Read-Ergebnisse, Datenänderungs-Subscriptions, EngineeringUnits mit UN/CEFACT Celsius-Code und ConditionRefresh funktionieren.
@@ -46,6 +53,7 @@ dotnet build --no-restore
 dotnet test tests/Gateway.Tests/Gateway.Tests.csproj --no-build --no-restore
 bash scripts/check-models.sh
 python3 scripts/integration.py
+TEST_LAUNCH_PROFILES=1 TEST_NAMESPACE_URI=urn:example:integration:kitchen python3 scripts/integration.py
 ~~~
 
 Integration verwendet Web 15080, API 15090, UA 14840. TEST_WEB_PORT, TEST_API_PORT und TEST_UA_PORT erlauben andere Ports. Alle gestarteten Prozesse werden beendet. Der Test aktualisiert keine echten Geräte.

@@ -9,6 +9,15 @@ public sealed record GatewayConfig
 {
     public int SchemaVersion { get; init; } = 1;
     public Guid GatewayId { get; init; } = Guid.NewGuid();
+    /// <summary>Eigener Instanz-/Diagnosenamensraum; HKI und DI bleiben unveränderte offizielle Namespaces.</summary>
+    public string NamespaceUri { get; init; } = GatewayIdentity.DefaultNamespaceUri;
+    /// <summary>Installationsidentität im OPC-UA-Zertifikat. Null erzeugt eine neutrale URI aus der dauerhaften GatewayId.</summary>
+    public string? ApplicationUri { get; init; }
+    [JsonIgnore]
+    public string EffectiveApplicationUri => ApplicationUri ?? $"urn:kitchen-gateway:application:{GatewayId:D}";
+    /// <summary>Softwareanbieter des Gateways, unabhängig vom Hersteller der angebundenen Küchengeräte.</summary>
+    public string ManufacturerName { get; init; } = "Kitchen Gateway Project";
+    public string ProductName { get; init; } = "ConnectedKitchen HKI Gateway";
     public bool Demo { get; init; }
     public string ApiBaseUrl { get; init; } = "https://connectedkitchen-eu.cloud";
     public string? ApiCaFile { get; init; }
@@ -77,6 +86,13 @@ public static class ConfigValidation
                 z.Bindings == null || z.DeviceUnsupported == null || z.Bindings.Any(b => b == null))))
             return ["Geräte, Zonen und Zuordnungslisten dürfen nicht null sein."];
         if (c.SchemaVersion != 1 || c.GatewayId == Guid.Empty) errors.Add("SchemaVersion oder GatewayId ungültig.");
+        if (!GatewayIdentity.ValidUri(c.NamespaceUri) ||
+            new[] { Opc.Ua.Namespaces.OpcUa, ModelCatalog.Di, ModelCatalog.Hki }.Contains(c.NamespaceUri))
+            errors.Add("Eigener Namespace muss eine gültige absolute URI außerhalb der offiziellen OPC-UA-/DI-/HKI-Namensräume sein.");
+        if (!GatewayIdentity.ValidUri(c.EffectiveApplicationUri)) errors.Add("ApplicationUri muss eine gültige absolute URI sein.");
+        if (string.IsNullOrWhiteSpace(c.ManufacturerName) || c.ManufacturerName.Length > 160 ||
+            string.IsNullOrWhiteSpace(c.ProductName) || c.ProductName.Length > 160)
+            errors.Add("Softwareanbieter und Produktname benötigen 1–160 Zeichen.");
         if (!string.IsNullOrWhiteSpace(c.ApiCaFile))
         {
             try { using var ca = System.Security.Cryptography.X509Certificates.X509CertificateLoader.LoadCertificateFromFile(c.ApiCaFile); }

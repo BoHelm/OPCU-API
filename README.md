@@ -4,6 +4,19 @@ Eine tatsächlich implementierte C#/.NET-10-Anwendung mit ASP.NET-Core-Konfigura
 
 **Stand: lesender, fachlich begrenzter MVP. Keine OPC-Zertifizierung und kein vollständiger HKI-Konformitätsnachweis.** Die API dokumentiert keinen passenden Rückkanal für laufende Sollwerte, Start/Stop oder Geräte-Alarmquittierungen. Alle Gerätevariablen sind deshalb lesend; ein vorbereiteter Dispatcher lehnt unbelegte Operationen ab.
 
+## Start in Visual Studio auf dem PC
+
+Voraussetzungen: **Visual Studio 2026 (18.x)** mit ASP.NET-/Webentwicklung und **.NET SDK 10.0.402**. Visual Studio 2022 unterstützt das Ziel .NET 10 nicht; die Versionsbindung steht in global.json. `dotnet --list-sdks` muss das benötigte SDK zeigen.
+
+1. ConnectedKitchenGateway.sln öffnen und NuGet-Pakete wiederherstellen.
+2. Das gemeinsame Startprofil **Lokale Simulation** auswählen. Falls es nicht erscheint: Lösung → Eigenschaften → mehrere Startprojekte; **DemoApi** und **Gateway** auf „Start“ setzen. Für beide die Profile mit **(Simulation)** verwenden.
+3. F5 drücken. Die Konfigurationsoberfläche öffnet sich auf `http://127.0.0.1:5080/setup`. Das ist eine Webanwendung; es erscheint kein eigenes Desktopfenster.
+4. Den Einrichtungstoken lokal aus **.keys/visual-studio-demo/gateway/bootstrap-token** im Repository-Verzeichnis lesen und den Administrator anlegen.
+
+Die simulierte API läuft auf 5090, OPC UA auf 4840. Diese Ports müssen frei sein. Wenn nur das Gateway startet, bleibt seine Weboberfläche verfügbar und zeigt die fehlende API-Verbindung; nach Start von DemoApi verbindet es sich automatisch. Simulation und echte ConnectedKitchen-Konfiguration nutzen getrennte Daten-/Schlüsselverzeichnisse. Für die echte Anbindung **nur Gateway** mit dem Profil **Gateway (ConnectedKitchen)** starten und API-Zugangsdaten in der geschützten Oberfläche einrichten. Siehe [Visual-Studio-Fehlersuche](docs/INSTALLATION.md#visual-studio-auf-windows).
+
+Neue Installationen verwenden neutrale, vor der ersten Einrichtung konfigurierbare OPC-UA-Kennungen. Der Softwareanbieter lässt sich in der Oberfläche anpassen. Bestehende Kennungen bleiben beim Update erhalten; offizielle HKI-/DI-Namespaces ändern sich nie. Details: [Gateway-Identität](docs/KONFIGURATION.md#gateway-identität-und-herstellerneutralität).
+
 ## Schnellstart: vollständige lokale Simulation
 
 Voraussetzungen: Linux, .NET SDK **10.0.402**, Bash und curl. In der eingerichteten Codex-Cloud vorher:
@@ -68,6 +81,7 @@ Ein lokales Gateway kann eine lokale ConnectedKitchen-Installation verwenden. Ei
 - [Betrieb, Zertifikate, Backups und Wiederanlauf](docs/BETRIEB.md)
 - [Testergebnisse und Abnahmegrenzen](docs/ABNAHME.md)
 - [Offene fachliche Punkte und API-Erweiterungen](docs/OFFENE-PUNKTE.md)
+- [Abgleich mit der vom Projektteam gelieferten ZIP](docs/ABGLEICH.md)
 - [Drittanbieterhinweise](THIRD-PARTY-NOTICES.md)
 
 Der eigene Quellcode liegt unter src/, tests/ und tools/. Unveränderte offizielle Modelle liegen separat in models/upstream/. Vom ModelCompiler erzeugter Code landet ausschließlich unter .artifacts/generated/ und wird nicht mit dem handgeschriebenen Anwendungscode vermischt.

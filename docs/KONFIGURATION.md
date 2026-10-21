@@ -24,7 +24,26 @@ gateway.json enthält ausschließlich nicht geheime Einstellungen, Geräte-GUIDs
 
 Ein neuer Schlüssel oder eine gespeicherte URL führt nicht zu einem verdeckten sofortigen Befehlsaufruf an Geräte. Der Verbindungstest ist GET /api/devices gegen die **aktive** Konfiguration. Eine nur gespeicherte neue Basis-URL muss zuerst per Neustart aktiviert werden.
 
-## Verbindung
+## Gateway-Identität und Herstellerneutralität
+
+Die HKI-Gerätemodellierung hängt nicht vom Softwareanbieter ab. Die offiziellen URIs `http://opcfoundation.org/UA/CommercialKitchenEquipment/` und `http://opcfoundation.org/UA/DI/` bleiben unverändert. Eigene Instanzen und Diagnosen verwenden bei neuen Installationen standardmäßig `urn:kitchen-gateway:diagnostics`; die Anwendungsidentität lautet `urn:kitchen-gateway:application:<GatewayId>`.
+
+Vor dem ersten Start einer **neuen** Installation können folgende nicht geheimen Umgebungsvariablen gesetzt werden:
+
+| Variable | Gespeichertes Feld / Bedeutung |
+|---|---|
+| GATEWAY_INITIAL_NAMESPACE_URI | namespaceUri: eigener, absoluter Namespace, niemals eine offizielle HKI-/DI-/OPC-UA-URI |
+| GATEWAY_INITIAL_APPLICATION_URI | applicationUri: absolute, installationsweit eindeutige OPC-UA-Zertifikatsidentität |
+| GATEWAY_INITIAL_MANUFACTURER | manufacturerName: Softwareanbieter des Gateways |
+| GATEWAY_INITIAL_PRODUCT_NAME | productName: Anzeigename der Gateway-Software |
+
+Diese Initialwerte überschreiben keine vorhandene gateway.json. Softwareanbieter und Produktname sind danach über die Weboberfläche mit Neustart änderbar. Die beiden URIs zeigt die Oberfläche schreibgeschützt; ein späterer Wechsel wird auch beim Import abgelehnt, weil er Clientbindungen beziehungsweise Zertifikatsvertrauen beschädigen würde. Sie sind keine URLs, die das Gateway im Internet aufruft.
+
+Bestandskonfigurationen aus 0.1.0 ohne Identitätsfelder werden einmalig ergänzt: `urn:bohelm:connectedkitchen:gateway` und die bisherige `urn:bohelm:kitchen:<GatewayId>` bleiben ausschließlich für diese Installationen erhalten. Es werden keine bestehenden Zertifikate und keine Geräte-GUIDs ersetzt. Die alten Bezeichner im Migrationscode sind Kompatibilitätswerte, keine Vorgaben für neue Kunden.
+
+`Manufacturer` in einem HKI-Gerät bezeichnet weiterhin dessen belegten realen Hersteller. Die Angabe des Gateway-Softwareanbieters darf diesen Wert nicht ersetzen.
+
+## Verbindung zur API
 
 - Standard-Cloud-URL: https://connectedkitchen-eu.cloud. Der api-key-Header wird nur an den konfigurierten Ursprung gesendet.
 - Lokale Installation: alternative HTTPS-Basis-URL eintragen und DNS/Erreichbarkeit vom Gateway prüfen. Loopback-HTTP ist nur für eine tatsächlich lokale Installation vorgesehen.

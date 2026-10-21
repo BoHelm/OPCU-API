@@ -1,0 +1,9 @@
+[
+  {
+    "Name": "Lokale Simulation",
+    "Projects": [
+      { "Path": "src\\DemoApi\\DemoApi.csproj", "Action": "Start" },
+      { "Path": "src\\Gateway\\Gateway.csproj", "Action": "Start" }
+    ]
+  }
+]

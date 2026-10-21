@@ -2,20 +2,28 @@
   "build": {
     "lockedRestore": true,
     "success": true,
-    "csharpWarnings": 0
+    "csharpWarnings": 0,
+    "lastExecutedOn": "2026-10-21"
   },
   "unit": {
-    "total": 17,
-    "executed": 17,
-    "passed": 17,
+    "total": 22,
+    "executed": 22,
+    "passed": 22,
     "failed": 0,
-    "notExecuted": 0
+    "notExecuted": 0,
+    "lastExecutedOn": "2026-10-21"
   },
   "integration": {
-    "passed": 87,
+    "passed": 95,
     "failed": 0,
     "simulationOnly": true,
+    "launchProfilesTested": true,
+    "windowsIdeTested": false,
+    "namespaceUri": "urn:example:integration:kitchen",
     "checks": [
+      "Gateway startet ohne Simulationsschlüssel; fehlende Quelle bleibt sichtbar",
+      "Live-Protokoll ohne Anmeldung geschützt",
+      "Später gestartete Demo-API wird ohne Gateway-Neustart verbunden",
       "Administrative Daten ohne Anmeldung geschützt",
       "Ersteinrichtung weist fehlenden CSRF-Token ab",
       "Ersteinrichtung mit einmaligem lokalem Token",
@@ -24,6 +32,11 @@
       "Verbindungstest gegen lokale simulierte API",
       "Konfigurationsexport enthält keine Schlüssel oder Passwort-Hashes",
       "API-Key liegt verschlüsselt vor",
+      "Neutrale oder explizit konfigurierte Gateway-Identität",
+      "Namespace-Wechsel bestehender NodeIds wird abgewiesen",
+      "Wechsel bestehender Zertifikatsidentität wird abgewiesen",
+      "Übernommenes Live-Protokoll enthält REST- und OPC-UA-Diagnose",
+      "Live-Protokoll gibt keine API-Schlüssel oder Anmeldepasswörter aus",
       "Ungültige Konfiguration wird vor Aktivierung abgewiesen",
       "Eigenständiger OPC-UA-Client erzeugt eigenes Zertifikat",
       "Getrenntes OPC-UA-Konto eingerichtet",
@@ -103,7 +116,8 @@
       "Keine API-Schlüssel in Prozesslogs",
       "Aktive und gespeicherte Konfiguration stimmen nach Neustart überein",
       "Geordnetes Herunterfahren"
-    ]
+    ],
+    "lastExecutedOn": "2026-10-21"
   },
   "browser": {
     "passed": true,
@@ -112,15 +126,20 @@
     "configurationSaved": true,
     "secretNotReturned": true,
     "uaEncrypted": true,
+    "liveLogFilterAndPause": true,
+    "neutralIdentity": true,
     "subscriptionNotifications": 5,
     "stableNodeIdsAfterContainerRestart": true,
-    "javascriptErrors": []
+    "javascriptErrors": [],
+    "lastExecutedOn": "2026-10-21"
   },
   "httpsDeployment": {
     "httpsVerified": true,
     "hostnameVerified": true,
     "separateDataSourceHealth": true,
-    "secureCookie": true
+    "secureCookie": true,
+    "lastExecutedOn": "2026-10-15",
+    "retestedForThisRevision": false
   },
   "documentedStartup": {
     "passed": true,
@@ -128,21 +147,38 @@
     "sourceHealth": 200,
     "webSetup": 200,
     "simulatedDevices": 3,
-    "gracefulShutdown": true
+    "gracefulShutdown": true,
+    "lastExecutedOn": "2026-10-15",
+    "retestedForThisRevision": false
   },
   "models": {
     "compiler": "2.8.15",
     "generatedArtifactsVerified": true,
-    "officialFilesHashVerified": true
+    "officialFilesHashVerified": true,
+    "lastExecutedOn": "2026-10-21"
   },
   "containers": {
     "gatewayBuilt": true,
     "demoApiBuilt": true,
     "nonRootRuntime": true,
-    "composeStarted": true
+    "composeStarted": true,
+    "lastExecutedOn": "2026-10-21",
+    "automaticProxyScenarioVerified": true,
+    "dockerWarnings": [
+      "SecretsUsedInArgOrEnv: GATEWAY_KEY_DIR ist ausschließlich ein Verzeichnispfad, kein Secret-Wert."
+    ]
   },
   "realConnectedKitchenTested": false,
   "realDevicesTested": false,
   "opcCertified": false,
-  "fullHkiConformanceClaimed": false
+  "fullHkiConformanceClaimed": false,
+  "checkedOn": "2026-10-21",
+  "alignment": {
+    "inputArchive": "MKN_OPC_UA_Helm.zip",
+    "sha256": "e2b80da705c409fc8b33fb1201e4b895f744ea5ad65435af993cd57200f898ee",
+    "baselineCommit": "9173b54bd5e3cbb83cbca43ed9358e87074fc9e8",
+    "teamGuidelinesPreserved": true,
+    "teamLiveDiagnosticsIntegrated": true,
+    "windowsIdeTested": false
+  }
 }

@@ -9,7 +9,7 @@ namespace KitchenGateway;
 
 /// <summary>Besitzt SDK-Lebenszyklus und Zertifikate. Der SDK-Server wird vor dem Host geordnet beendet.</summary>
 public sealed class UaService(GatewayConfig config, GatewayStore store, GatewayCache cache, ModelCatalog catalog,
-    ILogger<UaService> logger) : BackgroundService
+    ILogger<UaService> logger, DiagnosticsLog log) : BackgroundService
 {
     private ApplicationInstance? application;
     private KitchenServer? server;
@@ -21,8 +21,10 @@ public sealed class UaService(GatewayConfig config, GatewayStore store, GatewayC
     public string Pki => Path.Combine(store.DataDirectory, "pki");
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        var phase = "Netzwerk- und Sicherheitskonfiguration vorbereiten";
         try
         {
+            log.Add("Info", "OPC UA", "Start: Netzwerk- und Sicherheitskonfiguration wird vorbereitet.");
             var security = new SecurityConfiguration
             {
                 ApplicationCertificate = new CertificateIdentifier
@@ -48,8 +50,8 @@ public sealed class UaService(GatewayConfig config, GatewayStore store, GatewayC
             Configuration = new ApplicationConfiguration
             {
                 ApplicationName = "ConnectedKitchen Gateway",
-                ApplicationUri = $"urn:bohelm:kitchen:{config.GatewayId:D}",
-                ProductUri = ModelCatalog.Vendor,
+                ApplicationUri = config.EffectiveApplicationUri,
+                ProductUri = GatewayIdentity.ProductUri,
                 ApplicationType = ApplicationType.Server,
                 SecurityConfiguration = security,
                 ServerConfiguration = new ServerConfiguration
@@ -72,11 +74,16 @@ public sealed class UaService(GatewayConfig config, GatewayStore store, GatewayC
                 TransportQuotas = new TransportQuotas { OperationTimeout = 15000, MaxMessageSize = 4 * 1024 * 1024, MaxByteStringLength = 1024 * 1024 },
                 TraceConfiguration = new TraceConfiguration()
             };
+            phase = "OPC-UA-Konfiguration validieren";
             await Configuration.Validate(ApplicationType.Server);
+            log.Add("Info", "OPC UA", "Konfiguration geprüft. Anwendungszertifikat wird geladen und geprüft.");
             application = new ApplicationInstance { ApplicationName = Configuration.ApplicationName, ApplicationType = ApplicationType.Server, ApplicationConfiguration = Configuration };
             var certificateId = security.ApplicationCertificate;
+            phase = "Anwendungszertifikat laden";
             if (await certificateId.Find(true) == null)
             {
+                phase = "Anwendungszertifikat erzeugen und speichern";
+                log.Add("Info", "OPC UA", "Neues Anwendungszertifikat wird erzeugt.");
                 // Der SDK-Default betrachtet Bind-Adressen. Für NAT/Container gehört außerdem
                 // der tatsächlich angekündigte Client-DNS-Name zwingend in SubjectAltName.
                 var domains = Configuration.GetServerDomainNames().Append(new Uri(config.UaEndpointUrl).DnsSafeHost)
@@ -87,15 +94,21 @@ public sealed class UaService(GatewayConfig config, GatewayStore store, GatewayC
                 await generatedCertificate.AddToStoreAsync(certificateId.StoreType, certificateId.StorePath);
                 certificateId.Certificate = generatedCertificate;
             }
+            phase = "Anwendungszertifikat prüfen";
             if (!await application.CheckApplicationInstanceCertificatesAsync(false))
                 throw new InvalidOperationException("OPC-UA-Anwendungszertifikat konnte nicht geprüft/erstellt werden.");
             // Auch bestehende Zertifikate prüfen; bei DNS-Wechsel kein stiller Zertifikatsaustausch.
+            phase = "Endpoint-Hostname gegen Anwendungszertifikat prüfen";
             Configuration.CertificateValidator.ValidateDomains((await certificateId.Find(true))!,
                 new ConfiguredEndpoint(null, new EndpointDescription { EndpointUrl = config.UaEndpointUrl },
                     EndpointConfiguration.Create(Configuration)), true);
+            phase = "OPC-UA-Server und Geräteadressraum starten";
             server = new KitchenServer(config, store, cache, catalog);
+            log.Add("Info", "OPC UA", "Zertifikat geprüft. Server und Geräteadressraum werden gestartet.");
             await application.StartAsync(server);
             Ready = true;
+            phase = "Cache in den OPC-UA-Adressraum übernehmen";
+            log.Add("Info", "OPC UA", $"Server bereit: {config.Devices.Count(d => d.Enabled)} aktive Geräte; Cache-Übernahme alle 500 ms.");
             logger.LogInformation("OPC-UA-Server gestartet; {Count} explizit konfigurierte Geräte.", config.Devices.Count(d => d.Enabled));
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -106,6 +119,8 @@ public sealed class UaService(GatewayConfig config, GatewayStore store, GatewayC
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { }
         catch (Exception e)
         {
+            var detail = e is ServiceResultException uaError ? StatusCode.LookupSymbolicId(uaError.StatusCode) : e.GetType().Name;
+            log.AddError("OPC UA", $"Fehler bei „{phase}“ ({detail}). Ursache und Stacktrace unter Fehlerdetails öffnen.", e);
             StartupError = "OPC-UA-Start fehlgeschlagen: Bind-Adresse, Zertifikate und Konfiguration prüfen.";
             logger.LogError(e, "OPC-UA-Startfehler; Webdiagnose bleibt verfügbar.");
             if (e is ServiceResultException sdkError) logger.LogError("SDK-Startdiagnose: {Details}", sdkError.Result.ToLongString());
@@ -114,11 +129,22 @@ public sealed class UaService(GatewayConfig config, GatewayStore store, GatewayC
         finally
         {
             Ready = false;
+            log.Add("Info", "OPC UA", "OPC-UA-Dienst wird beendet.");
             if (server != null)
             {
                 using var shutdown = new CancellationTokenSource(TimeSpan.FromSeconds(10));
                 try { await server.StopAsync(shutdown.Token); }
-                catch (OperationCanceledException) { logger.LogWarning("OPC-UA-Abschaltfrist erreicht."); }
+                catch (OperationCanceledException)
+                {
+                    logger.LogWarning("OPC-UA-Abschaltfrist erreicht.");
+                    log.Add("Warnung", "OPC UA", "Abschaltfrist erreicht.");
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Fehler beim Beenden des OPC-UA-Servers.");
+                    log.AddError("OPC UA", "OPC-UA-Server konnte nicht geordnet beendet werden.", e);
+                    throw;
+                }
                 server.Dispose();
             }
             generatedCertificate?.Dispose();
@@ -146,9 +172,9 @@ public sealed class KitchenServer(GatewayConfig config, GatewayStore store, Gate
     }
     protected override ServerProperties LoadServerProperties() => new()
     {
-        ManufacturerName = "BoHelm", ProductName = "ConnectedKitchen HKI Gateway",
-        ProductUri = ModelCatalog.Vendor, SoftwareVersion = "0.1.0", BuildNumber = "1",
-        BuildDate = new DateTime(2026, 10, 15, 0, 0, 0, DateTimeKind.Utc)
+        ManufacturerName = config.ManufacturerName, ProductName = config.ProductName,
+        ProductUri = GatewayIdentity.ProductUri, SoftwareVersion = "0.1.0", BuildNumber = "2",
+        BuildDate = new DateTime(2026, 10, 21, 0, 0, 0, DateTimeKind.Utc)
     };
     protected override void OnServerStarted(IServerInternal server)
     {
@@ -194,7 +220,7 @@ public sealed class KitchenNodeManager : CustomNodeManager2
     private readonly List<(AlarmConditionState Alarm, BaseObjectState Source, string HealthPrefix)> alarms = [];
     private ushort vendor;
     public KitchenNodeManager(IServerInternal server, ApplicationConfiguration configuration, GatewayConfig config,
-        GatewayStore store, GatewayCache cache, ModelCatalog catalog) : base(server, configuration, ModelCatalog.Vendor, ModelCatalog.Di, ModelCatalog.Hki)
+        GatewayStore store, GatewayCache cache, ModelCatalog catalog) : base(server, configuration, config.NamespaceUri, ModelCatalog.Di, ModelCatalog.Hki)
     { this.config = config; this.store = store; this.cache = cache; this.catalog = catalog; SystemContext.NodeIdFactory = this; }
 
     protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context)
@@ -212,7 +238,7 @@ public sealed class KitchenNodeManager : CustomNodeManager2
         lock (Lock)
         {
             base.CreateAddressSpace(externalReferences);
-            vendor = Server.NamespaceUris.GetIndexOrAppend(ModelCatalog.Vendor);
+            vendor = Server.NamespaceUris.GetIndexOrAppend(config.NamespaceUri);
             var root = Object(null, "Devices", "ConnectedKitchen – " + (config.Demo ? "SIMULATION" : "HKI Gateway"),
                 "Devices", ObjectTypeIds.FolderType, 0, ReferenceTypeIds.Organizes);
             root.EventNotifier = EventNotifiers.SubscribeToEvents;

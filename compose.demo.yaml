@@ -21,6 +21,10 @@ services:
       GATEWAY_DEMO: "true"
       GATEWAY_DEMO_API_URL: http://simulated-api:5090
       GATEWAY_DEMO_KEY_FILE: /demo/demo.key
+      # Docker kann Unternehmens-Proxys automatisch injizieren. Der ausschließlich
+      # interne Simulator darf darüber weder abgefragt noch von ihnen blockiert werden.
+      NO_PROXY: "localhost,127.0.0.1,simulated-api"
+      no_proxy: "localhost,127.0.0.1,simulated-api"
       GATEWAY_INITIAL_UA_BIND: 0.0.0.0
       # Ausdrücklich nur lokale Simulation: Web-HTTP nur auf Host-Loopback.
       # OPC UA bleibt SignAndEncrypt mit explizitem Vertrauen und eigenem Benutzer.

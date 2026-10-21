@@ -9,7 +9,6 @@ public sealed class ModelCatalog
 {
     public const string Hki = "http://opcfoundation.org/UA/CommercialKitchenEquipment/";
     public const string Di = "http://opcfoundation.org/UA/DI/";
-    public const string Vendor = "urn:bohelm:connectedkitchen:gateway";
     private readonly Dictionary<string, ModelNode> nodes = [];
     private readonly Dictionary<string, ModelNode> types = [];
     public ModelCatalog(string directory)

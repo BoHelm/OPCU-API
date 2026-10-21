@@ -41,7 +41,7 @@ var dataDir = Environment.GetEnvironmentVariable("GATEWAY_DATA_DIR") ?? Path.Com
 var keyDir = Environment.GetEnvironmentVariable("GATEWAY_KEY_DIR") ?? Path.GetFullPath(dataDir) + "-keys";
 var store = new GatewayStore(dataDir, keyDir);
 var catalog = new ModelCatalog(Path.Combine(AppContext.BaseDirectory, "Models"));
-var config = store.Read<GatewayConfig>("gateway.json");
+var config = GatewayIdentity.Load(store);
 if (config == null)
 {
     var demo = Environment.GetEnvironmentVariable("GATEWAY_DEMO") == "true";
@@ -51,10 +51,16 @@ if (config == null)
         config = config with { UaPort = initialPort, UaEndpointUrl = $"opc.tcp://localhost:{initialPort}/kitchen" };
     if (Environment.GetEnvironmentVariable("GATEWAY_INITIAL_UA_BIND") is { } initialBind)
         config = config with { UaBindAddress = initialBind };
+    // Nur bei der ersten Einrichtung: Ein Update darf Zertifikatsidentität und NodeIds nicht ändern.
+    config = config with
+    {
+        NamespaceUri = Environment.GetEnvironmentVariable("GATEWAY_INITIAL_NAMESPACE_URI") ?? config.NamespaceUri,
+        ApplicationUri = Environment.GetEnvironmentVariable("GATEWAY_INITIAL_APPLICATION_URI") ?? config.EffectiveApplicationUri,
+        ManufacturerName = Environment.GetEnvironmentVariable("GATEWAY_INITIAL_MANUFACTURER") ?? config.ManufacturerName,
+        ProductName = Environment.GetEnvironmentVariable("GATEWAY_INITIAL_PRODUCT_NAME") ?? config.ProductName
+    };
     store.Save("gateway.json", config);
 }
-if (config.Demo && !store.ApiKeyConfigured && Environment.GetEnvironmentVariable("GATEWAY_DEMO_KEY_FILE") is { } demoKeyFile)
-    store.SetApiKey(File.ReadAllText(demoKeyFile).Trim());
 var errors = ConfigValidation.Validate(config, catalog);
 if (errors.Count > 0) throw new InvalidOperationException("Gespeicherte Konfiguration ungültig: " + string.Join("; ", errors));
 if (store.Read<WebAdmin>("web-admin.json") == null) _ = store.BootstrapToken();
@@ -62,6 +68,7 @@ builder.Services.AddSingleton(store);
 builder.Services.AddSingleton(config);
 builder.Services.AddSingleton(catalog);
 builder.Services.AddSingleton<GatewayCache>();
+builder.Services.AddSingleton<DiagnosticsLog>();
 builder.Services.AddSingleton<WriteDispatcher>();
 builder.Services.AddSingleton<ConnectedKitchenClient>();
 builder.Services.AddSingleton<UaService>();
@@ -91,6 +98,7 @@ builder.Services.AddRateLimiter(o => o.AddFixedWindowLimiter("authentication", l
     limits.QueueLimit = 0; limits.AutoReplenishment = true;
 }).RejectionStatusCode = 429);
 var app = builder.Build();
+app.Services.GetRequiredService<DiagnosticsLog>().Add("Info", "Gateway", "Gateway startet. Gespeicherte Konfiguration wird als aktive Konfiguration verwendet.");
 var setupLock = new object();
 app.Use(async (context, next) =>
 {
@@ -172,12 +180,15 @@ api.MapPost("/config", ([FromBody] GatewayConfig next) =>
 {
     var problems = ConfigValidation.Validate(next, catalog);
     if (next.GatewayId != config.GatewayId) problems.Add("GatewayId ist unveränderlich; Import muss die Identität dieser Installation erhalten.");
+    if (next.NamespaceUri != config.NamespaceUri || next.EffectiveApplicationUri != config.EffectiveApplicationUri)
+        problems.Add("NamespaceUri und ApplicationUri sind nach Ersteinrichtung unveränderlich; vorhandene NodeIds und Zertifikate müssen erhalten bleiben.");
     var existing = store.Read<GatewayConfig>("gateway.json")!;
     foreach (var device in next.Devices)
         if (existing.Devices.Any(d => d.ApiId == device.ApiId && d.Identity != device.Identity))
             problems.Add("Bestehende Geräteidentität darf beim Import nicht geändert werden.");
     if (problems.Count > 0) return Results.BadRequest(new { errors = problems });
     store.Save("gateway.json", next);
+    app.Services.GetRequiredService<DiagnosticsLog>().Add("Info", "Konfiguration", "Konfiguration gespeichert. Änderungen werden nach einem Gateway-Neustart aktiv.");
     return Results.Ok(new { restartRequired = true });
 });
 api.MapPost("/secret", (SecretInput input) => { store.SetApiKey(input.Value); return Results.Ok(new { configured = true, effective = "sofort beim nächsten Abruf" }); });
@@ -197,6 +208,7 @@ api.MapGet("/model", () => Results.Ok(Profiles.All.ToDictionary(p => p.Key, p =>
     deviceFields = catalog.Declarations(p.Value.DeviceType).Values.Where(n => n.IsVariable).Select(n => new { n.Name, n.DataTypeName, n.Mandatory, dynamic = Mapping.IsDynamic(n.Name), unit = Mapping.Unit(n.Name) }),
     zoneFields = catalog.Declarations(p.Value.ZoneType).Values.Where(n => n.IsVariable).Select(n => new { n.Name, n.DataTypeName, n.Mandatory, dynamic = Mapping.IsDynamic(n.Name), unit = Mapping.Unit(n.Name) })
 })));
+api.MapGet("/logs", (DiagnosticsLog log) => Results.Ok(new { capacity = DiagnosticsLog.Capacity, entries = log.Snapshot() }));
 api.MapGet("/diagnostics", (GatewayCache cache, UaService ua) => Results.Ok(new
 {
     simulation = config.Demo, opcUaReady = ua.Ready, uaError = ua.StartupError,

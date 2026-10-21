@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 import re
 import secrets
+import signal
 import subprocess
 import time
 import urllib.error
@@ -28,6 +29,8 @@ PRIVATE.mkdir(mode=0o700)
 WEB_PORT, API_PORT, UA_PORT = (int(os.environ.get(k, v)) for k, v in [
     ("TEST_WEB_PORT", "15080"), ("TEST_API_PORT", "15090"), ("TEST_UA_PORT", "14840")])
 WEB, API = f"http://127.0.0.1:{WEB_PORT}", f"http://127.0.0.1:{API_PORT}"
+USE_PROFILES = os.environ.get("TEST_LAUNCH_PROFILES") == "1"
+NAMESPACE = os.environ.get("TEST_NAMESPACE_URI", "urn:kitchen-gateway:diagnostics")
 DLL = ROOT / "src/Gateway/bin/Debug/net10.0/Gateway.dll"
 DEMO = ROOT / "src/DemoApi/bin/Debug/net10.0/DemoApi.dll"
 PROBE = ROOT / "tools/UaProbe/bin/Debug/net10.0/UaProbe.dll"
@@ -85,10 +88,22 @@ def until(predicate, name, timeout=25):
 
 def spawn(dll, directory, environment, log):
     stream = open(log, "ab", buffering=0)
-    process = subprocess.Popen(["dotnet", str(dll)], cwd=directory,
+    command = ["dotnet", str(dll)]
+    if USE_PROFILES and dll in (DLL, DEMO):
+        name = "Gateway" if dll == DLL else "DemoApi"
+        command = ["dotnet", "run", "--no-build", "--no-restore", "--project", str(ROOT / "src" / name),
+            "--launch-profile", name + " (Simulation)"]
+        # CLI-Overrides ändern nur Testports/-verzeichnisse. Die echten gespeicherten Profile
+        # werden geladen; Prozessargumente enthalten ausschließlich nicht geheime Einstellungen.
+        for key, value in environment.items(): command += ["--environment", key + "=" + value]
+    process = subprocess.Popen(command, cwd=directory, start_new_session=os.name != "nt",
         env=dict(os.environ, **environment), stdout=stream, stderr=subprocess.STDOUT)
     processes.append((process, stream))
     return process
+
+def terminate(process):
+    if os.name != "nt": os.killpg(process.pid, signal.SIGTERM)
+    else: process.terminate()
 
 def start_gateway():
     global gateway
@@ -96,12 +111,13 @@ def start_gateway():
         "ASPNETCORE_URLS": WEB, "GATEWAY_DEMO": "true", "GATEWAY_DEMO_API_URL": API,
         "GATEWAY_DEMO_KEY_FILE": str(PRIVATE / "demo.key"),
         "GATEWAY_DATA_DIR": str(PRIVATE / "data"), "GATEWAY_KEY_DIR": str(PRIVATE / "keys"),
+        "GATEWAY_INITIAL_NAMESPACE_URI": NAMESPACE,
         "GATEWAY_INITIAL_UA_PORT": str(UA_PORT), "Logging__LogLevel__Default": "Warning"
     }, RUN / "gateway.log")
     until(lambda: http("/health/ready", authenticated=False)[0] == 200, "OPC-UA-Start", 50)
 
 def stop_gateway():
-    gateway.terminate()
+    terminate(gateway)
     try:
         code = gateway.wait(timeout=18)
     except subprocess.TimeoutExpired:
@@ -136,10 +152,15 @@ def quality(expected):
     return any(n["nodeId"].endswith(TARGET) and n["status"] == expected for n in get("/api/diagnostics")["nodes"])
 
 try:
+    start_gateway()
+    check(http("/health/source", authenticated=False)[0] == 503,
+        "Gateway startet ohne Simulationsschlüssel; fehlende Quelle bleibt sichtbar")
+    check(http("/api/logs", authenticated=False)[0] == 401, "Live-Protokoll ohne Anmeldung geschützt")
     spawn(DEMO, ROOT, {"ASPNETCORE_URLS": API, "DEMO_KEY_FILE": str(PRIVATE / "demo.key"),
         "Logging__LogLevel__Default": "Warning"}, RUN / "demo.log")
     until(lambda: (PRIVATE / "demo.key").exists(), "Simulationsschlüssel")
-    start_gateway()
+    until(lambda: http("/health/source", authenticated=False)[0] == 200, "Später gestartete Demo-API")
+    check(True, "Später gestartete Demo-API wird ohne Gateway-Neustart verbunden")
     check(http("/api/config", authenticated=False)[0] == 401, "Administrative Daten ohne Anmeldung geschützt")
     setup = http("/setup")[1].decode()
     token = html.unescape(re.search(r'name="__RequestVerificationToken" value="([^"]+)"', setup)[1])
@@ -164,6 +185,17 @@ try:
         "Konfigurationsexport enthält keine Schlüssel oder Passwort-Hashes")
     check(key.encode() not in (PRIVATE / "data/api-key.enc").read_bytes(), "API-Key liegt verschlüsselt vor")
     cfg = get("/api/config")["configuration"]
+    check(cfg["namespaceUri"] == NAMESPACE and cfg["applicationUri"].startswith("urn:kitchen-gateway:application:"),
+        "Neutrale oder explizit konfigurierte Gateway-Identität")
+    check(http("/api/config", "POST", dict(cfg, namespaceUri="urn:example:changed"))[0] == 400,
+        "Namespace-Wechsel bestehender NodeIds wird abgewiesen")
+    check(http("/api/config", "POST", dict(cfg, applicationUri="urn:example:changed"))[0] == 400,
+        "Wechsel bestehender Zertifikatsidentität wird abgewiesen")
+    entries = get("/api/logs")["entries"]
+    check(any(e["component"] == "REST" for e in entries) and any(e["component"] == "OPC UA" for e in entries),
+        "Übernommenes Live-Protokoll enthält REST- und OPC-UA-Diagnose")
+    check(key not in json.dumps(entries) and admin_password not in json.dumps(entries),
+        "Live-Protokoll gibt keine API-Schlüssel oder Anmeldepasswörter aus")
     invalid = dict(cfg, uaPort=7)
     check(http("/api/config", "POST", invalid)[0] == 400, "Ungültige Konfiguration wird vor Aktivierung abgewiesen")
     result = cli("init")
@@ -257,7 +289,7 @@ try:
         "--endpoint",f"opc.tcp://localhost:{UA_PORT}/kitchen","--server-cert",str(RUN/"server.der"),
         "--user","integration-reader","--password-file",str(PRIVATE/"ua-password"),"--seconds","9",
         "--ready-file",str(RUN/"event-client.ready"),"--output",str(RUN/"events.json")],
-        cwd=ROOT,stdout=open(RUN/"events.log","wb"),stderr=subprocess.STDOUT)
+        cwd=ROOT,start_new_session=os.name != "nt",stdout=open(RUN/"events.log","wb"),stderr=subprocess.STDOUT)
     processes.append((event_process,None))
     until(lambda: (RUN/"event-client.ready").exists(),"Event-Client ist tatsächlich subscribed",35)
     scenario(Status=503)
@@ -275,11 +307,12 @@ try:
     check(not get("/api/config")["restartRequired"], "Aktive und gespeicherte Konfiguration stimmen nach Neustart überein")
     stop_gateway()
     print(f"Integration erfolgreich: {len(checks)} Prüfungen. Ergebnisse: {RUN}",flush=True)
-    (RUN/"summary.json").write_text(json.dumps({"passed":len(checks),"failed":0,"simulationOnly":True,"checks":checks},indent=2,ensure_ascii=False))
+    (RUN/"summary.json").write_text(json.dumps({"passed":len(checks),"failed":0,"simulationOnly":True,
+        "launchProfilesTested":USE_PROFILES,"windowsIdeTested":False,"namespaceUri":NAMESPACE,"checks":checks},indent=2,ensure_ascii=False))
 finally:
     for process, stream in reversed(processes):
         if process.poll() is None:
-            process.terminate()
+            terminate(process)
             try: process.wait(timeout=15)
             except subprocess.TimeoutExpired:
                 process.kill()

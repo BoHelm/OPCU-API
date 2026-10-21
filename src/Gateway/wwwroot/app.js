@@ -2,6 +2,54 @@
 let configuration, models, csrf, editors = [];
 const $ = id => document.getElementById(id);
 function notice(text) { $("message").textContent = text; }
+let logEntries = [], logPaused = false, logStarted = false;
+function renderLog() {
+  const output = $("logOutput"), filter = $("logLevel").value;
+  const follow = output.scrollHeight - output.scrollTop - output.clientHeight < 40;
+  const previousScroll = output.scrollTop;
+  const expanded = new Set(Array.from(output.querySelectorAll("details[open]"), node => node.dataset.entry));
+  output.replaceChildren();
+  const entries = logEntries.filter(entry => filter === "all" ||
+    (filter === "problems" ? entry.level !== "Info" : entry.level === "Fehler"));
+  if (!entries.length) el("p", "Keine Meldungen für diese Auswahl vorhanden.", output);
+  for (const entry of entries) {
+    const line = el("div", undefined, output);
+    line.className = "log-line" + (entry.level === "Fehler" ? " log-error" : entry.level === "Warnung" ? " log-warning" : "");
+    el("time", new Date(entry.timestamp).toISOString().replace("T", " ").replace("Z", " UTC"), line);
+    el("strong", entry.level + " · " + entry.component, line);
+    el("span", entry.message, line);
+    if (entry.details) {
+      const details = el("details", undefined, line);
+      details.className = "log-details";
+      details.dataset.entry = entry.id + "/" + entry.timestamp;
+      details.open = expanded.has(details.dataset.entry);
+      el("summary", "Fehlerdetails: Ursache und Stacktrace", details);
+      el("pre", entry.details, details);
+    }
+  }
+  output.scrollTop = follow ? output.scrollHeight : previousScroll;
+}
+async function refreshLog() {
+  if (logPaused || document.hidden) return;
+  try {
+    const data = await request("logs");
+    if (logPaused) return;
+    const changed = logEntries.length !== data.entries.length ||
+      logEntries[0]?.id !== data.entries[0]?.id ||
+      logEntries[logEntries.length - 1]?.id !== data.entries[data.entries.length - 1]?.id ||
+      logEntries[0]?.timestamp !== data.entries[0]?.timestamp;
+    logEntries = data.entries;
+    if (changed) renderLog();
+    $("logStatus").textContent = "Live · " + logEntries.length + " von maximal " + data.capacity +
+      " Einträgen · aktualisiert " + new Date().toLocaleTimeString("de-DE");
+  } catch {
+    $("logStatus").textContent = "Protokoll konnte nicht geladen werden. Verbindung zum Gateway prüfen; erneuter Versuch in 2 Sekunden.";
+  }
+}
+async function pollLog() {
+  await refreshLog();
+  window.setTimeout(pollLog, 2000);
+}
 async function request(path, method = "GET", body) {
   const response = await fetch("/api/" + path, {
     method, headers: method === "GET" ? {} : {"Content-Type": "application/json", "X-CSRF-TOKEN": csrf},
@@ -87,7 +135,7 @@ function renderDevices() {
 }
 function applySettings() {
   const numeric=["inventoryIntervalSeconds","actualIntervalSeconds","setIntervalSeconds","staleAfterSeconds","historyWindowSeconds","httpTimeoutSeconds","maxParallelRequests","uaPort"];
-  for(const id of [...numeric,"apiBaseUrl","apiCaFile","uaBindAddress","uaEndpointUrl"])
+  for(const id of [...numeric,"apiBaseUrl","apiCaFile","uaBindAddress","uaEndpointUrl","manufacturerName","productName"])
     configuration[id]=numeric.includes(id)?Number($(id).value):($(id).value||null);
   editors.forEach(save=>save());
 }
@@ -135,9 +183,12 @@ async function security(){
   }
 }
 async function start(){
-  csrf=(await request("session")).csrfToken;const state=await request("config");configuration=state.configuration;
+  csrf=(await request("session")).csrfToken;
+  if (!logStarted) { logStarted = true; void pollLog(); }
+  const state=await request("config");configuration=state.configuration;
   models=await request("model");
-  for(const id of ["apiBaseUrl","apiCaFile","inventoryIntervalSeconds","actualIntervalSeconds","setIntervalSeconds","staleAfterSeconds","historyWindowSeconds","httpTimeoutSeconds","maxParallelRequests","uaBindAddress","uaPort","uaEndpointUrl"])$(id).value=configuration[id]??"";
+  for(const id of ["apiBaseUrl","apiCaFile","inventoryIntervalSeconds","actualIntervalSeconds","setIntervalSeconds","staleAfterSeconds","historyWindowSeconds","httpTimeoutSeconds","maxParallelRequests","uaBindAddress","uaPort","uaEndpointUrl","manufacturerName","productName","namespaceUri"])$(id).value=configuration[id]??"";
+  $("applicationUri").value=configuration.applicationUri??`urn:kitchen-gateway:application:${configuration.gatewayId}`;
   $("keyStatus").textContent=state.apiKeyConfigured?"Ein API-Key ist verschlüsselt hinterlegt.":"Noch kein API-Key hinterlegt.";
   $("pending").textContent=state.restartRequired?"Gespeicherte Änderungen benötigen einen Neustart.":"";
   renderDevices();await Promise.all([diagnostics(),security()]);
@@ -147,6 +198,14 @@ handle("settings","submit",async()=>{applySettings();await saveConfiguration(con
 handle("secretForm","submit",async()=>{await request("secret","POST",{value:$("apiKey").value});$("apiKey").value="";$("keyStatus").textContent="API-Key verschlüsselt hinterlegt.";notice("API-Key ersetzt; wirksam beim nächsten Abruf.");});
 handle("test","click",async()=>notice(JSON.stringify(await request("connection-test","POST",{}))));
 handle("refresh","click",diagnostics);
+handle("logLevel","change",renderLog);
+handle("logPause","click",async()=>{
+  logPaused=!logPaused;
+  $("logPause").textContent=logPaused?"Anzeige fortsetzen":"Anzeige pausieren";
+  $("logPause").setAttribute("aria-pressed",String(logPaused));
+  if(logPaused)$("logStatus").textContent="Anzeige pausiert · Der Server protokolliert weiter.";
+  else await refreshLog();
+});
 handle("logout","click",async()=>{await request("logout","POST",{});location.href="/login";});
 handle("uaUserForm","submit",async()=>{await request("ua/users","POST",{username:$("uaUsername").value,password:$("uaPassword").value,role:$("uaRole").value});$("uaPassword").value="";notice("OPC-UA-Benutzer gespeichert; wirksam bei der nächsten Anmeldung.");await security();});
 handle("import","change",async()=>{const file=$("import").files[0];if(!file)return;const next=JSON.parse(await file.text());await saveConfiguration(next);await start();});
